@@ -14,13 +14,247 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      characters: {
+        Row: {
+          accent_color: string | null
+          alias: string | null
+          canon_summary_md: string | null
+          created_at: string
+          eyebrow: string | null
+          id: string
+          identity_md: string | null
+          name: string
+          portrait_url: string | null
+          role: string | null
+          slug: string
+          spoiler_md: string | null
+          story_id: string | null
+          story_role_md: string | null
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          alias?: string | null
+          canon_summary_md?: string | null
+          created_at?: string
+          eyebrow?: string | null
+          id?: string
+          identity_md?: string | null
+          name: string
+          portrait_url?: string | null
+          role?: string | null
+          slug: string
+          spoiler_md?: string | null
+          story_id?: string | null
+          story_role_md?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          alias?: string | null
+          canon_summary_md?: string | null
+          created_at?: string
+          eyebrow?: string | null
+          id?: string
+          identity_md?: string | null
+          name?: string
+          portrait_url?: string | null
+          role?: string | null
+          slug?: string
+          spoiler_md?: string | null
+          story_id?: string | null
+          story_role_md?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "characters_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      factions: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          slug: string
+          spoiler_md: string | null
+          summary_md: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          slug: string
+          spoiler_md?: string | null
+          summary_md?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          slug?: string
+          spoiler_md?: string | null
+          summary_md?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      power_systems: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          spoiler_md: string | null
+          summary_md: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          spoiler_md?: string | null
+          summary_md?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          spoiler_md?: string | null
+          summary_md?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      spoiler_notes: {
+        Row: {
+          body_md: string | null
+          created_at: string
+          id: string
+          related_story_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_md?: string | null
+          created_at?: string
+          id?: string
+          related_story_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_md?: string | null
+          created_at?: string
+          id?: string
+          related_story_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spoiler_notes_related_story_id_fkey"
+            columns: ["related_story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stories: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          id: string
+          number: number
+          slug: string
+          summary_md: string | null
+          summary_spoiler_md: string | null
+          tagline: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          number: number
+          slug: string
+          summary_md?: string | null
+          summary_spoiler_md?: string | null
+          tagline?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          id?: string
+          number?: number
+          slug?: string
+          summary_md?: string | null
+          summary_spoiler_md?: string | null
+          tagline?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      worlds: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          slug: string
+          spoiler_md: string | null
+          summary_md: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          slug: string
+          spoiler_md?: string | null
+          summary_md?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          slug?: string
+          spoiler_md?: string | null
+          summary_md?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_owner: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
