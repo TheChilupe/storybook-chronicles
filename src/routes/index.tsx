@@ -6,6 +6,17 @@ import { storiesQO } from "@/lib/queries";
 import { Markdown } from "@/components/markdown";
 import cloudBg from "@/assets/main-cloud-bg.jpg";
 import logo from "@/assets/logo-white.png";
+import storyRush from "@/assets/story-1-rush.jpg";
+import storyAzul from "@/assets/story-2-azul.jpg";
+import storyBlueKnight from "@/assets/story-3-blue-knight.jpg";
+import storyTim from "@/assets/story-4-tim.jpg";
+
+const STORY_IMAGES: Record<string, string> = {
+  rush: storyRush,
+  azul: storyAzul,
+  "blue-knight": storyBlueKnight,
+  "tim-malcolm": storyTim,
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Storybook Chronicles Codex" }] }),
@@ -15,19 +26,33 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { data: stories = [] } = useQuery(storiesQO);
   return (
-    <div>
+    <div className="bg-background text-foreground">
       <SiteHeader />
       <section
-        className="relative flex min-h-[70vh] flex-col items-center justify-center px-6 py-20 text-center"
+        className="relative flex min-h-[88vh] flex-col items-center justify-center overflow-hidden px-6 py-24 text-center"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(11,15,23,0.85) 80%, var(--color-background)), url(${cloudBg})`,
+          backgroundImage: `linear-gradient(to bottom, rgba(11,15,23,0.55), rgba(11,15,23,0.85) 75%, var(--color-background)), url(${cloudBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <img src={logo} alt="" className="h-32 w-32 drop-shadow-[0_0_30px_rgba(255,255,255,0.45)]" />
-        <h1 className="mt-6 text-5xl font-bold sm:text-7xl">Storybook Chronicles</h1>
-        <p className="mt-4 max-w-2xl text-lg text-foreground/85">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              "radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.7), transparent 60%), radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.6), transparent 60%), radial-gradient(1.5px 1.5px at 40% 80%, rgba(255,255,255,0.5), transparent 60%), radial-gradient(1px 1px at 85% 20%, rgba(255,255,255,0.65), transparent 60%), radial-gradient(1px 1px at 10% 75%, rgba(255,255,255,0.55), transparent 60%)",
+          }}
+        />
+        <img
+          src={logo}
+          alt="Storybook Chronicles"
+          className="relative h-40 w-40 drop-shadow-[0_0_45px_rgba(120,170,255,0.55)] sm:h-48 sm:w-48"
+        />
+        <h1 className="relative mt-8 text-5xl font-bold tracking-tight sm:text-7xl">
+          Storybook Chronicles
+        </h1>
+        <p className="relative mt-5 max-w-2xl text-lg text-foreground/85 sm:text-xl">
           A multigenerational epic across heroes, gods, galaxies, and the lies that bind them all.
         </p>
       </section>
@@ -48,11 +73,21 @@ function Index() {
                 key={s.id}
                 to={"/stories/$slug" as any}
                 params={{ slug: s.slug } as any}
-                className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary"
+                className="group overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:border-primary hover:shadow-[0_10px_40px_-10px_rgba(37,99,235,0.5)]"
               >
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Story {s.number}</span>
-                <h3 className="mt-1 text-lg font-semibold group-hover:text-primary">{s.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{s.tagline}</p>
+                {STORY_IMAGES[s.slug] && (
+                  <div
+                    className="aspect-[4/3] w-full bg-cover bg-center"
+                    style={{ backgroundImage: `url(${STORY_IMAGES[s.slug]})` }}
+                  />
+                )}
+                <div className="p-5">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Story {s.number}
+                  </span>
+                  <h3 className="mt-1 text-lg font-semibold group-hover:text-primary">{s.title}</h3>
+                  {s.tagline && <p className="mt-2 text-sm text-muted-foreground">{s.tagline}</p>}
+                </div>
               </Link>
             ))}
           </div>
