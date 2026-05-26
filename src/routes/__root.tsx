@@ -6,7 +6,12 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
+  useNavigate,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { signOut } from "@/lib/auth";
 
 import appCss from "../styles.css?url";
 
@@ -72,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Storybook Chronicles Codex" },
+      { name: "description", content: "Private lore database for Storybook Chronicles." },
+      { name: "robots", content: "noindex,nofollow" },
+      { property: "og:title", content: "Storybook Chronicles Codex" },
+      { property: "og:description", content: "Private lore database for Storybook Chronicles." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -113,7 +117,43 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthGate>
+        <Outlet />
+      </AuthGate>
     </QueryClientProvider>
   );
+}
+
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isLogin = location.pathname === "/login";
+
+  useEffect(() => {
+    if (auth.loading) return;
+    if (!auth.email && !isLogin) navigate({ to: "/login" });
+  }, [auth.loading, auth.email, isLogin, navigate]);
+
+  if (auth.loading) {
+    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
+  }
+  if (isLogin) return <>{children}</>;
+  if (!auth.email) return null;
+  if (!auth.allowed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="max-w-md text-center">
+          <h1 className="text-2xl font-semibold">Access denied</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This codex is private. <span className="font-mono">{auth.email}</span> is not on the allowlist.
+          </p>
+          <button onClick={async () => { await signOut(); }} className="mt-6 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90">
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return <>{children}</>;
 }
