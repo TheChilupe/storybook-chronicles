@@ -46,8 +46,8 @@ function Index() {
             {stories.map((s) => (
               <Link
                 key={s.id}
-                to="/stories/$slug"
-                params={{ slug: s.slug }}
+                to={"/stories/$slug" as any}
+                params={{ slug: s.slug } as any}
                 className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary"
               >
                 <span className="text-xs uppercase tracking-wider text-muted-foreground">Story {s.number}</span>
