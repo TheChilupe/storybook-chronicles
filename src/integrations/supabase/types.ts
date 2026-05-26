@@ -14,17 +14,162 @@ export type Database = {
   }
   public: {
     Tables: {
+      character_factions: {
+        Row: {
+          character_id: string
+          created_at: string
+          faction_id: string
+          role: string | null
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          faction_id: string
+          role?: string | null
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          faction_id?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_factions_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_factions_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_powers: {
+        Row: {
+          character_id: string
+          created_at: string
+          notes: string | null
+          power_system_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          notes?: string | null
+          power_system_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          notes?: string | null
+          power_system_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_powers_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_powers_power_system_id_fkey"
+            columns: ["power_system_id"]
+            isOneToOne: false
+            referencedRelation: "power_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_stories: {
+        Row: {
+          character_id: string
+          created_at: string
+          role: string | null
+          story_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          role?: string | null
+          story_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          role?: string | null
+          story_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_stories_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_stories_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_worlds: {
+        Row: {
+          character_id: string
+          created_at: string
+          world_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          world_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          world_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_worlds_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_worlds_world_id_fkey"
+            columns: ["world_id"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       characters: {
         Row: {
           accent_color: string | null
           alias: string | null
+          canon_status: string
           canon_summary_md: string | null
           created_at: string
           eyebrow: string | null
           id: string
           identity_md: string | null
+          last_synced_at: string | null
           name: string
+          notion_source_url: string | null
           portrait_url: string | null
+          primary_story_id: string | null
           role: string | null
           slug: string
           spoiler_md: string | null
@@ -36,13 +181,17 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           alias?: string | null
+          canon_status?: string
           canon_summary_md?: string | null
           created_at?: string
           eyebrow?: string | null
           id?: string
           identity_md?: string | null
+          last_synced_at?: string | null
           name: string
+          notion_source_url?: string | null
           portrait_url?: string | null
+          primary_story_id?: string | null
           role?: string | null
           slug: string
           spoiler_md?: string | null
@@ -54,13 +203,17 @@ export type Database = {
         Update: {
           accent_color?: string | null
           alias?: string | null
+          canon_status?: string
           canon_summary_md?: string | null
           created_at?: string
           eyebrow?: string | null
           id?: string
           identity_md?: string | null
+          last_synced_at?: string | null
           name?: string
+          notion_source_url?: string | null
           portrait_url?: string | null
+          primary_story_id?: string | null
           role?: string | null
           slug?: string
           spoiler_md?: string | null
@@ -70,6 +223,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "characters_primary_story_id_fkey"
+            columns: ["primary_story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "characters_story_id_fkey"
             columns: ["story_id"]
@@ -81,30 +241,39 @@ export type Database = {
       }
       factions: {
         Row: {
+          canon_status: string
           created_at: string
           id: string
           image_url: string | null
+          last_synced_at: string | null
           name: string
+          notion_source_url: string | null
           slug: string
           spoiler_md: string | null
           summary_md: string | null
           updated_at: string
         }
         Insert: {
+          canon_status?: string
           created_at?: string
           id?: string
           image_url?: string | null
+          last_synced_at?: string | null
           name: string
+          notion_source_url?: string | null
           slug: string
           spoiler_md?: string | null
           summary_md?: string | null
           updated_at?: string
         }
         Update: {
+          canon_status?: string
           created_at?: string
           id?: string
           image_url?: string | null
+          last_synced_at?: string | null
           name?: string
+          notion_source_url?: string | null
           slug?: string
           spoiler_md?: string | null
           summary_md?: string | null
@@ -114,27 +283,36 @@ export type Database = {
       }
       power_systems: {
         Row: {
+          canon_status: string
           created_at: string
           id: string
+          last_synced_at: string | null
           name: string
+          notion_source_url: string | null
           slug: string
           spoiler_md: string | null
           summary_md: string | null
           updated_at: string
         }
         Insert: {
+          canon_status?: string
           created_at?: string
           id?: string
+          last_synced_at?: string | null
           name: string
+          notion_source_url?: string | null
           slug: string
           spoiler_md?: string | null
           summary_md?: string | null
           updated_at?: string
         }
         Update: {
+          canon_status?: string
           created_at?: string
           id?: string
+          last_synced_at?: string | null
           name?: string
+          notion_source_url?: string | null
           slug?: string
           spoiler_md?: string | null
           summary_md?: string | null
@@ -145,24 +323,33 @@ export type Database = {
       spoiler_notes: {
         Row: {
           body_md: string | null
+          canon_status: string
           created_at: string
           id: string
+          last_synced_at: string | null
+          notion_source_url: string | null
           related_story_id: string | null
           title: string
           updated_at: string
         }
         Insert: {
           body_md?: string | null
+          canon_status?: string
           created_at?: string
           id?: string
+          last_synced_at?: string | null
+          notion_source_url?: string | null
           related_story_id?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           body_md?: string | null
+          canon_status?: string
           created_at?: string
           id?: string
+          last_synced_at?: string | null
+          notion_source_url?: string | null
           related_story_id?: string | null
           title?: string
           updated_at?: string
@@ -179,9 +366,12 @@ export type Database = {
       }
       stories: {
         Row: {
+          canon_status: string
           cover_image_url: string | null
           created_at: string
           id: string
+          last_synced_at: string | null
+          notion_source_url: string | null
           number: number
           slug: string
           summary_md: string | null
@@ -191,9 +381,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          canon_status?: string
           cover_image_url?: string | null
           created_at?: string
           id?: string
+          last_synced_at?: string | null
+          notion_source_url?: string | null
           number: number
           slug: string
           summary_md?: string | null
@@ -203,9 +396,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          canon_status?: string
           cover_image_url?: string | null
           created_at?: string
           id?: string
+          last_synced_at?: string | null
+          notion_source_url?: string | null
           number?: number
           slug?: string
           summary_md?: string | null
@@ -218,30 +414,39 @@ export type Database = {
       }
       worlds: {
         Row: {
+          canon_status: string
           created_at: string
           id: string
           image_url: string | null
+          last_synced_at: string | null
           name: string
+          notion_source_url: string | null
           slug: string
           spoiler_md: string | null
           summary_md: string | null
           updated_at: string
         }
         Insert: {
+          canon_status?: string
           created_at?: string
           id?: string
           image_url?: string | null
+          last_synced_at?: string | null
           name: string
+          notion_source_url?: string | null
           slug: string
           spoiler_md?: string | null
           summary_md?: string | null
           updated_at?: string
         }
         Update: {
+          canon_status?: string
           created_at?: string
           id?: string
           image_url?: string | null
+          last_synced_at?: string | null
           name?: string
+          notion_source_url?: string | null
           slug?: string
           spoiler_md?: string | null
           summary_md?: string | null
