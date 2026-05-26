@@ -63,25 +63,27 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  /* Storybook Chronicles dark lore-bible palette */
+  --background: oklch(0.16 0.03 260);
+  --foreground: oklch(0.97 0.01 250);
+  --card: oklch(0.22 0.04 260);
+  --card-foreground: oklch(0.97 0.01 250);
+  --popover: oklch(0.22 0.04 260);
+  --popover-foreground: oklch(0.97 0.01 250);
+  --primary: oklch(0.62 0.20 255);
+  --primary-foreground: oklch(0.99 0.01 250);
+  --secondary: oklch(0.28 0.04 260);
+  --secondary-foreground: oklch(0.97 0.01 250);
+  --muted: oklch(0.26 0.03 260);
+  --muted-foreground: oklch(0.75 0.02 255);
+  --accent: oklch(0.40 0.12 255);
+  --accent-foreground: oklch(0.99 0.01 250);
+  --destructive: oklch(0.60 0.22 25);
+  --destructive-foreground: oklch(0.99 0.01 250);
+  --border: oklch(0.32 0.03 260);
+  --input: oklch(0.28 0.03 260);
+  --ring: oklch(0.62 0.20 255);
+  --spoiler: oklch(0.60 0.22 25);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +142,21 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  h1, h2, h3 { letter-spacing: -0.01em; }
+
+  .prose-lore p { margin-bottom: 1rem; line-height: 1.7; }
+  .prose-lore strong { color: var(--color-foreground); }
+  .prose-lore h2 { font-size: 1.25rem; margin: 1rem 0 0.5rem; font-weight: 700; }
+  .prose-lore ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+  .prose-lore a { color: oklch(0.75 0.15 255); text-decoration: underline; }
+
+  .spoiler-box {
+    border: 1px solid color-mix(in oklab, var(--spoiler) 60%, transparent);
+    background: color-mix(in oklab, var(--spoiler) 8%, transparent);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
   }
 }

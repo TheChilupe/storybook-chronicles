@@ -9,38 +9,226 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorldsRouteImport } from './routes/worlds'
+import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as SpoilerNotesRouteImport } from './routes/spoiler-notes'
+import { Route as PowerSystemsRouteImport } from './routes/power-systems'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as FactionsRouteImport } from './routes/factions'
+import { Route as CharactersRouteImport } from './routes/characters'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
+import { Route as CharactersSlugRouteImport } from './routes/characters.$slug'
 
+const WorldsRoute = WorldsRouteImport.update({
+  id: '/worlds',
+  path: '/worlds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoriesRoute = StoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpoilerNotesRoute = SpoilerNotesRouteImport.update({
+  id: '/spoiler-notes',
+  path: '/spoiler-notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PowerSystemsRoute = PowerSystemsRouteImport.update({
+  id: '/power-systems',
+  path: '/power-systems',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FactionsRoute = FactionsRouteImport.update({
+  id: '/factions',
+  path: '/factions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CharactersRoute = CharactersRouteImport.update({
+  id: '/characters',
+  path: '/characters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoriesSlugRoute = StoriesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => StoriesRoute,
+} as any)
+const CharactersSlugRoute = CharactersSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => CharactersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/characters': typeof CharactersRouteWithChildren
+  '/factions': typeof FactionsRoute
+  '/login': typeof LoginRoute
+  '/power-systems': typeof PowerSystemsRoute
+  '/spoiler-notes': typeof SpoilerNotesRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/worlds': typeof WorldsRoute
+  '/characters/$slug': typeof CharactersSlugRoute
+  '/stories/$slug': typeof StoriesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/characters': typeof CharactersRouteWithChildren
+  '/factions': typeof FactionsRoute
+  '/login': typeof LoginRoute
+  '/power-systems': typeof PowerSystemsRoute
+  '/spoiler-notes': typeof SpoilerNotesRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/worlds': typeof WorldsRoute
+  '/characters/$slug': typeof CharactersSlugRoute
+  '/stories/$slug': typeof StoriesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/characters': typeof CharactersRouteWithChildren
+  '/factions': typeof FactionsRoute
+  '/login': typeof LoginRoute
+  '/power-systems': typeof PowerSystemsRoute
+  '/spoiler-notes': typeof SpoilerNotesRoute
+  '/stories': typeof StoriesRouteWithChildren
+  '/worlds': typeof WorldsRoute
+  '/characters/$slug': typeof CharactersSlugRoute
+  '/stories/$slug': typeof StoriesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/characters'
+    | '/factions'
+    | '/login'
+    | '/power-systems'
+    | '/spoiler-notes'
+    | '/stories'
+    | '/worlds'
+    | '/characters/$slug'
+    | '/stories/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/characters'
+    | '/factions'
+    | '/login'
+    | '/power-systems'
+    | '/spoiler-notes'
+    | '/stories'
+    | '/worlds'
+    | '/characters/$slug'
+    | '/stories/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/characters'
+    | '/factions'
+    | '/login'
+    | '/power-systems'
+    | '/spoiler-notes'
+    | '/stories'
+    | '/worlds'
+    | '/characters/$slug'
+    | '/stories/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  CharactersRoute: typeof CharactersRouteWithChildren
+  FactionsRoute: typeof FactionsRoute
+  LoginRoute: typeof LoginRoute
+  PowerSystemsRoute: typeof PowerSystemsRoute
+  SpoilerNotesRoute: typeof SpoilerNotesRoute
+  StoriesRoute: typeof StoriesRouteWithChildren
+  WorldsRoute: typeof WorldsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/worlds': {
+      id: '/worlds'
+      path: '/worlds'
+      fullPath: '/worlds'
+      preLoaderRoute: typeof WorldsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spoiler-notes': {
+      id: '/spoiler-notes'
+      path: '/spoiler-notes'
+      fullPath: '/spoiler-notes'
+      preLoaderRoute: typeof SpoilerNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/power-systems': {
+      id: '/power-systems'
+      path: '/power-systems'
+      fullPath: '/power-systems'
+      preLoaderRoute: typeof PowerSystemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/factions': {
+      id: '/factions'
+      path: '/factions'
+      fullPath: '/factions'
+      preLoaderRoute: typeof FactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/characters': {
+      id: '/characters'
+      path: '/characters'
+      fullPath: '/characters'
+      preLoaderRoute: typeof CharactersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +236,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stories/$slug': {
+      id: '/stories/$slug'
+      path: '/$slug'
+      fullPath: '/stories/$slug'
+      preLoaderRoute: typeof StoriesSlugRouteImport
+      parentRoute: typeof StoriesRoute
+    }
+    '/characters/$slug': {
+      id: '/characters/$slug'
+      path: '/$slug'
+      fullPath: '/characters/$slug'
+      preLoaderRoute: typeof CharactersSlugRouteImport
+      parentRoute: typeof CharactersRoute
+    }
   }
 }
 
+interface CharactersRouteChildren {
+  CharactersSlugRoute: typeof CharactersSlugRoute
+}
+
+const CharactersRouteChildren: CharactersRouteChildren = {
+  CharactersSlugRoute: CharactersSlugRoute,
+}
+
+const CharactersRouteWithChildren = CharactersRoute._addFileChildren(
+  CharactersRouteChildren,
+)
+
+interface StoriesRouteChildren {
+  StoriesSlugRoute: typeof StoriesSlugRoute
+}
+
+const StoriesRouteChildren: StoriesRouteChildren = {
+  StoriesSlugRoute: StoriesSlugRoute,
+}
+
+const StoriesRouteWithChildren =
+  StoriesRoute._addFileChildren(StoriesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  CharactersRoute: CharactersRouteWithChildren,
+  FactionsRoute: FactionsRoute,
+  LoginRoute: LoginRoute,
+  PowerSystemsRoute: PowerSystemsRoute,
+  SpoilerNotesRoute: SpoilerNotesRoute,
+  StoriesRoute: StoriesRouteWithChildren,
+  WorldsRoute: WorldsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
