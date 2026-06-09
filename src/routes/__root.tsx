@@ -128,17 +128,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const isLogin = location.pathname === "/login";
+  const isPublic = location.pathname === "/login" || location.pathname === "/reset";
 
   useEffect(() => {
     if (auth.loading) return;
-    if (!auth.email && !isLogin) navigate({ to: "/login" });
-  }, [auth.loading, auth.email, isLogin, navigate]);
+    if (!auth.email && !isPublic) navigate({ to: "/login" });
+  }, [auth.loading, auth.email, isPublic, navigate]);
 
   if (auth.loading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   }
-  if (isLogin) return <>{children}</>;
+  if (isPublic) return <>{children}</>;
   if (!auth.email) return null;
   if (!auth.allowed) {
     return (

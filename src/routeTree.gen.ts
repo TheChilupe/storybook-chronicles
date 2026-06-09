@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorldsRouteImport } from './routes/worlds'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SpoilerNotesRouteImport } from './routes/spoiler-notes'
+import { Route as ResetRouteImport } from './routes/reset'
 import { Route as PowerSystemsRouteImport } from './routes/power-systems'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FactionsRouteImport } from './routes/factions'
@@ -34,6 +35,11 @@ const StoriesRoute = StoriesRouteImport.update({
 const SpoilerNotesRoute = SpoilerNotesRouteImport.update({
   id: '/spoiler-notes',
   path: '/spoiler-notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetRoute = ResetRouteImport.update({
+  id: '/reset',
+  path: '/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PowerSystemsRoute = PowerSystemsRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
   '/power-systems': typeof PowerSystemsRoute
+  '/reset': typeof ResetRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
   '/power-systems': typeof PowerSystemsRoute
+  '/reset': typeof ResetRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
   '/power-systems': typeof PowerSystemsRoute
+  '/reset': typeof ResetRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/factions'
     | '/login'
     | '/power-systems'
+    | '/reset'
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/factions'
     | '/login'
     | '/power-systems'
+    | '/reset'
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/factions'
     | '/login'
     | '/power-systems'
+    | '/reset'
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   FactionsRoute: typeof FactionsRoute
   LoginRoute: typeof LoginRoute
   PowerSystemsRoute: typeof PowerSystemsRoute
+  ResetRoute: typeof ResetRoute
   SpoilerNotesRoute: typeof SpoilerNotesRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   WorldsRoute: typeof WorldsRoute
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/spoiler-notes'
       fullPath: '/spoiler-notes'
       preLoaderRoute: typeof SpoilerNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset': {
+      id: '/reset'
+      path: '/reset'
+      fullPath: '/reset'
+      preLoaderRoute: typeof ResetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/power-systems': {
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   FactionsRoute: FactionsRoute,
   LoginRoute: LoginRoute,
   PowerSystemsRoute: PowerSystemsRoute,
+  ResetRoute: ResetRoute,
   SpoilerNotesRoute: SpoilerNotesRoute,
   StoriesRoute: StoriesRouteWithChildren,
   WorldsRoute: WorldsRoute,
