@@ -16,6 +16,7 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -26,6 +27,7 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
+    setInfo(null);
     if (!isAllowed(email)) { setErr("This codex is private."); return; }
     setBusy(true);
     try {
@@ -36,6 +38,24 @@ function LoginPage() {
       navigate({ to: "/" });
     } catch (e: any) {
       setErr(e.message ?? "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendReset = async () => {
+    setErr(null);
+    setInfo(null);
+    if (!isAllowed(email)) { setErr("Enter the allowlisted email first."); return; }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset`,
+      });
+      if (error) throw error;
+      setInfo("Password reset email sent. Check your inbox.");
+    } catch (e: any) {
+      setErr(e.message ?? "Could not send reset email");
     } finally {
       setBusy(false);
     }
@@ -61,12 +81,17 @@ function LoginPage() {
             className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
         </label>
         {err && <p className="text-sm text-[color:var(--destructive)]">{err}</p>}
+        {info && <p className="text-sm text-muted-foreground">{info}</p>}
         <button disabled={busy} className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
           {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
         </button>
         <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           className="block w-full text-center text-xs text-muted-foreground hover:text-foreground">
           {mode === "signin" ? "First time? Create your account" : "Have an account? Sign in"}
+        </button>
+        <button type="button" onClick={sendReset} disabled={busy}
+          className="block w-full text-center text-xs text-muted-foreground hover:text-foreground">
+          Forgot password?
         </button>
       </form>
     </div>
