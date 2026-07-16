@@ -5,12 +5,12 @@ import logo from "@/assets/logo-white.png";
 
 const nav = [
   { to: "/", label: "Home" },
-  { to: "/stories", label: "Stories" },
-  { to: "/characters", label: "Characters" },
-  { to: "/factions", label: "Factions" },
-  { to: "/worlds", label: "Worlds" },
-  { to: "/power-systems", label: "Powers" },
-  { to: "/spoiler-notes", label: "Spoiler Notes" },
+  { to: "/about", label: "About" },
+  { to: "/portfolio", label: "Portfolio" },
+  { to: "/storybook-chronicles", label: "Storybook Chronicles" },
+  { to: "/skills", label: "Skills" },
+  { to: "/resume", label: "Resume" },
+  { to: "/contact", label: "Contact" },
   { to: "/admin", label: "Admin" },
 ] as const;
 
