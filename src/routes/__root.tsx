@@ -124,11 +124,25 @@ function RootComponent() {
   );
 }
 
+const PUBLIC_PATHS = [
+  "/",
+  "/about",
+  "/portfolio",
+  "/skills",
+  "/resume",
+  "/contact",
+  "/storybook-chronicles",
+  "/storybook-chronicles/timeline",
+  "/storybook-chronicles/development-process",
+  "/login",
+  "/reset",
+];
+
 function AuthGate({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const isPublic = location.pathname === "/login" || location.pathname === "/reset";
+  const isPublic = PUBLIC_PATHS.includes(location.pathname);
 
   useEffect(() => {
     if (auth.loading) return;
