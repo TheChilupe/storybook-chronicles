@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorldsRouteImport } from './routes/worlds'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SpoilerNotesRouteImport } from './routes/spoiler-notes'
+import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as PowerSystemsRouteImport } from './routes/power-systems'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FactionsRouteImport } from './routes/factions'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -37,6 +40,16 @@ const StoriesRoute = StoriesRouteImport.update({
 const SpoilerNotesRoute = SpoilerNotesRouteImport.update({
   id: '/spoiler-notes',
   path: '/spoiler-notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkillsRoute = SkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResumeRoute = ResumeRouteImport.update({
+  id: '/resume',
+  path: '/resume',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetRoute = ResetRouteImport.update({
@@ -62,6 +75,11 @@ const LoginRoute = LoginRouteImport.update({
 const FactionsRoute = FactionsRouteImport.update({
   id: '/factions',
   path: '/factions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CharactersRoute = CharactersRouteImport.update({
@@ -100,11 +118,14 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/characters': typeof CharactersRouteWithChildren
+  '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
+  '/resume': typeof ResumeRoute
+  '/skills': typeof SkillsRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
@@ -116,11 +137,14 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/characters': typeof CharactersRouteWithChildren
+  '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
+  '/resume': typeof ResumeRoute
+  '/skills': typeof SkillsRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
@@ -133,11 +157,14 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/characters': typeof CharactersRouteWithChildren
+  '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
+  '/resume': typeof ResumeRoute
+  '/skills': typeof SkillsRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
@@ -151,11 +178,14 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/characters'
+    | '/contact'
     | '/factions'
     | '/login'
     | '/portfolio'
     | '/power-systems'
     | '/reset'
+    | '/resume'
+    | '/skills'
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
@@ -167,11 +197,14 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/characters'
+    | '/contact'
     | '/factions'
     | '/login'
     | '/portfolio'
     | '/power-systems'
     | '/reset'
+    | '/resume'
+    | '/skills'
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
@@ -183,11 +216,14 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/characters'
+    | '/contact'
     | '/factions'
     | '/login'
     | '/portfolio'
     | '/power-systems'
     | '/reset'
+    | '/resume'
+    | '/skills'
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
@@ -200,11 +236,14 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   CharactersRoute: typeof CharactersRouteWithChildren
+  ContactRoute: typeof ContactRoute
   FactionsRoute: typeof FactionsRoute
   LoginRoute: typeof LoginRoute
   PortfolioRoute: typeof PortfolioRoute
   PowerSystemsRoute: typeof PowerSystemsRoute
   ResetRoute: typeof ResetRoute
+  ResumeRoute: typeof ResumeRoute
+  SkillsRoute: typeof SkillsRoute
   SpoilerNotesRoute: typeof SpoilerNotesRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   WorldsRoute: typeof WorldsRoute
@@ -231,6 +270,20 @@ declare module '@tanstack/react-router' {
       path: '/spoiler-notes'
       fullPath: '/spoiler-notes'
       preLoaderRoute: typeof SpoilerNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resume': {
+      id: '/resume'
+      path: '/resume'
+      fullPath: '/resume'
+      preLoaderRoute: typeof ResumeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset': {
@@ -266,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/factions'
       fullPath: '/factions'
       preLoaderRoute: typeof FactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/characters': {
@@ -341,11 +401,14 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   CharactersRoute: CharactersRouteWithChildren,
+  ContactRoute: ContactRoute,
   FactionsRoute: FactionsRoute,
   LoginRoute: LoginRoute,
   PortfolioRoute: PortfolioRoute,
   PowerSystemsRoute: PowerSystemsRoute,
   ResetRoute: ResetRoute,
+  ResumeRoute: ResumeRoute,
+  SkillsRoute: SkillsRoute,
   SpoilerNotesRoute: SpoilerNotesRoute,
   StoriesRoute: StoriesRouteWithChildren,
   WorldsRoute: WorldsRoute,
