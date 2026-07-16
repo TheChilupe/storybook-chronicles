@@ -210,7 +210,7 @@ function AboutPage() {
             {timeline.map((item) => (
               <div key={item.year} className="relative pb-10 last:pb-0">
                 <div className="absolute -left-[1px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                <div className="flex flex-col gap-1 sm:flex-row sm:gap-6">
+                <div className="flex flex-col gap-1 pl-6 sm:flex-row sm:gap-6">
                   <span className="min-w-[4rem] text-base font-semibold text-primary">
                     {item.year}
                   </span>
