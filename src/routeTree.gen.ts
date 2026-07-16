@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorldsRouteImport } from './routes/worlds'
+import { Route as StorybookChroniclesRouteImport } from './routes/storybook-chronicles'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SpoilerNotesRouteImport } from './routes/spoiler-notes'
 import { Route as SkillsRouteImport } from './routes/skills'
@@ -24,12 +25,20 @@ import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StorybookChroniclesIndexRouteImport } from './routes/storybook-chronicles.index'
+import { Route as StorybookChroniclesTimelineRouteImport } from './routes/storybook-chronicles.timeline'
+import { Route as StorybookChroniclesDevelopmentProcessRouteImport } from './routes/storybook-chronicles.development-process'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as CharactersSlugRouteImport } from './routes/characters.$slug'
 
 const WorldsRoute = WorldsRouteImport.update({
   id: '/worlds',
   path: '/worlds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StorybookChroniclesRoute = StorybookChroniclesRouteImport.update({
+  id: '/storybook-chronicles',
+  path: '/storybook-chronicles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoriesRoute = StoriesRouteImport.update({
@@ -102,6 +111,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StorybookChroniclesIndexRoute =
+  StorybookChroniclesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => StorybookChroniclesRoute,
+  } as any)
+const StorybookChroniclesTimelineRoute =
+  StorybookChroniclesTimelineRouteImport.update({
+    id: '/timeline',
+    path: '/timeline',
+    getParentRoute: () => StorybookChroniclesRoute,
+  } as any)
+const StorybookChroniclesDevelopmentProcessRoute =
+  StorybookChroniclesDevelopmentProcessRouteImport.update({
+    id: '/development-process',
+    path: '/development-process',
+    getParentRoute: () => StorybookChroniclesRoute,
+  } as any)
 const StoriesSlugRoute = StoriesSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -128,9 +155,13 @@ export interface FileRoutesByFullPath {
   '/skills': typeof SkillsRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/storybook-chronicles': typeof StorybookChroniclesRouteWithChildren
   '/worlds': typeof WorldsRoute
   '/characters/$slug': typeof CharactersSlugRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
+  '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +181,9 @@ export interface FileRoutesByTo {
   '/worlds': typeof WorldsRoute
   '/characters/$slug': typeof CharactersSlugRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
+  '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/storybook-chronicles': typeof StorybookChroniclesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -167,9 +201,13 @@ export interface FileRoutesById {
   '/skills': typeof SkillsRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/storybook-chronicles': typeof StorybookChroniclesRouteWithChildren
   '/worlds': typeof WorldsRoute
   '/characters/$slug': typeof CharactersSlugRoute
   '/stories/$slug': typeof StoriesSlugRoute
+  '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
+  '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -188,9 +226,13 @@ export interface FileRouteTypes {
     | '/skills'
     | '/spoiler-notes'
     | '/stories'
+    | '/storybook-chronicles'
     | '/worlds'
     | '/characters/$slug'
     | '/stories/$slug'
+    | '/storybook-chronicles/development-process'
+    | '/storybook-chronicles/timeline'
+    | '/storybook-chronicles/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -210,6 +252,9 @@ export interface FileRouteTypes {
     | '/worlds'
     | '/characters/$slug'
     | '/stories/$slug'
+    | '/storybook-chronicles/development-process'
+    | '/storybook-chronicles/timeline'
+    | '/storybook-chronicles'
   id:
     | '__root__'
     | '/'
@@ -226,9 +271,13 @@ export interface FileRouteTypes {
     | '/skills'
     | '/spoiler-notes'
     | '/stories'
+    | '/storybook-chronicles'
     | '/worlds'
     | '/characters/$slug'
     | '/stories/$slug'
+    | '/storybook-chronicles/development-process'
+    | '/storybook-chronicles/timeline'
+    | '/storybook-chronicles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -246,6 +295,7 @@ export interface RootRouteChildren {
   SkillsRoute: typeof SkillsRoute
   SpoilerNotesRoute: typeof SpoilerNotesRoute
   StoriesRoute: typeof StoriesRouteWithChildren
+  StorybookChroniclesRoute: typeof StorybookChroniclesRouteWithChildren
   WorldsRoute: typeof WorldsRoute
 }
 
@@ -256,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/worlds'
       fullPath: '/worlds'
       preLoaderRoute: typeof WorldsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/storybook-chronicles': {
+      id: '/storybook-chronicles'
+      path: '/storybook-chronicles'
+      fullPath: '/storybook-chronicles'
+      preLoaderRoute: typeof StorybookChroniclesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stories': {
@@ -356,6 +413,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/storybook-chronicles/': {
+      id: '/storybook-chronicles/'
+      path: '/'
+      fullPath: '/storybook-chronicles/'
+      preLoaderRoute: typeof StorybookChroniclesIndexRouteImport
+      parentRoute: typeof StorybookChroniclesRoute
+    }
+    '/storybook-chronicles/timeline': {
+      id: '/storybook-chronicles/timeline'
+      path: '/timeline'
+      fullPath: '/storybook-chronicles/timeline'
+      preLoaderRoute: typeof StorybookChroniclesTimelineRouteImport
+      parentRoute: typeof StorybookChroniclesRoute
+    }
+    '/storybook-chronicles/development-process': {
+      id: '/storybook-chronicles/development-process'
+      path: '/development-process'
+      fullPath: '/storybook-chronicles/development-process'
+      preLoaderRoute: typeof StorybookChroniclesDevelopmentProcessRouteImport
+      parentRoute: typeof StorybookChroniclesRoute
+    }
     '/stories/$slug': {
       id: '/stories/$slug'
       path: '/$slug'
@@ -396,6 +474,22 @@ const StoriesRouteChildren: StoriesRouteChildren = {
 const StoriesRouteWithChildren =
   StoriesRoute._addFileChildren(StoriesRouteChildren)
 
+interface StorybookChroniclesRouteChildren {
+  StorybookChroniclesDevelopmentProcessRoute: typeof StorybookChroniclesDevelopmentProcessRoute
+  StorybookChroniclesTimelineRoute: typeof StorybookChroniclesTimelineRoute
+  StorybookChroniclesIndexRoute: typeof StorybookChroniclesIndexRoute
+}
+
+const StorybookChroniclesRouteChildren: StorybookChroniclesRouteChildren = {
+  StorybookChroniclesDevelopmentProcessRoute:
+    StorybookChroniclesDevelopmentProcessRoute,
+  StorybookChroniclesTimelineRoute: StorybookChroniclesTimelineRoute,
+  StorybookChroniclesIndexRoute: StorybookChroniclesIndexRoute,
+}
+
+const StorybookChroniclesRouteWithChildren =
+  StorybookChroniclesRoute._addFileChildren(StorybookChroniclesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -411,6 +505,7 @@ const rootRouteChildren: RootRouteChildren = {
   SkillsRoute: SkillsRoute,
   SpoilerNotesRoute: SpoilerNotesRoute,
   StoriesRoute: StoriesRouteWithChildren,
+  StorybookChroniclesRoute: StorybookChroniclesRouteWithChildren,
   WorldsRoute: WorldsRoute,
 }
 export const routeTree = rootRouteImport
