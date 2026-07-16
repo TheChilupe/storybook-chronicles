@@ -27,31 +27,85 @@ export const Route = createFileRoute("/resume")({
   component: ResumePage,
 });
 
-const placeholderSections = [
+const professionalSummary =
+  "Creative Project Manager and product builder with a track record of turning ambiguous ideas into shipped systems. I bridge the gap between creative vision and structured execution — planning roadmaps, coordinating cross-functional stakeholders, and building the tools, docs, and rituals that keep teams aligned. Creator of Storybook Chronicles, a long-form worldbuilding platform that doubles as a live case study in scope management, information architecture, and iterative delivery.";
+
+type ExperienceEntry = {
+  role: string;
+  company: string;
+  period: string;
+  location: string;
+  bullets: string[];
+};
+
+const experience: ExperienceEntry[] = [
   {
-    title: "Professional Summary",
-    body: "A brief overview of my career focus, strengths, and what I bring to project management and creative product teams. (To be populated from my official resume.)",
+    role: "Creator & Project Lead",
+    company: "Storybook Chronicles (Independent Project)",
+    period: "2023 — Present",
+    location: "Remote",
+    bullets: [
+      "Defined the product vision, information architecture, and content roadmap for a multi-year worldbuilding platform.",
+      "Designed the data model, authentication flows, and lore-management workflow; shipped iteratively from concept to a public portfolio site.",
+      "Managed scope across writing, design, and engineering workstreams as a single-person team — prioritizing ruthlessly against a public milestone plan.",
+    ],
   },
   {
-    title: "Work Experience",
-    body: "Detailed roles, responsibilities, and achievements from my professional history. (To be populated from my official resume.)",
+    role: "[DRAFT — Project Manager Role]",
+    company: "[Company Name]",
+    period: "[Start] — [End]",
+    location: "[City, State]",
+    bullets: [
+      "[Placeholder] Led cross-functional delivery of [initiative] across [teams], hitting [metric] under [constraint].",
+      "[Placeholder] Owned roadmap, stakeholder communication, and risk tracking for [product / program].",
+      "[Placeholder] Introduced [ritual / tool / process] that reduced [pain] by [measurable outcome].",
+    ],
   },
   {
-    title: "Education",
-    body: "Academic background, degrees, and relevant coursework. (To be populated from my official resume.)",
+    role: "[DRAFT — Prior Role]",
+    company: "[Company Name]",
+    period: "[Start] — [End]",
+    location: "[City, State]",
+    bullets: [
+      "[Placeholder] Coordinated [scope] across [stakeholders], delivering [outcome].",
+      "[Placeholder] Built [system / process] to improve [metric].",
+    ],
   },
+];
+
+const education = [
   {
-    title: "Certifications",
-    body: "Professional certifications, training, and credentials. (To be populated from my official resume.)",
+    school: "[DRAFT — Institution Name]",
+    credential: "[Degree, Field of Study]",
+    period: "[Year] — [Year]",
+    note: "[Optional: honors, relevant coursework, or focus area]",
   },
-  {
-    title: "Technical Skills",
-    body: "Software, tools, and technical competencies relevant to project management and product development. (To be populated from my official resume.)",
-  },
-  {
-    title: "Project Management Skills",
-    body: "Core PM competencies such as planning, risk management, stakeholder communication, and agile practices. (To be populated from my official resume.)",
-  },
+];
+
+const certifications = [
+  "[DRAFT] Project Management Professional (PMP) — [Issuer, Year]",
+  "[DRAFT] Certified ScrumMaster (CSM) — [Issuer, Year]",
+  "[DRAFT] Additional certification — [Issuer, Year]",
+];
+
+const technicalSkills = [
+  "Notion, Linear, Jira, Asana",
+  "Figma, FigJam, Miro",
+  "GitHub, Git workflows",
+  "Supabase, Postgres basics",
+  "TypeScript / React (working literacy)",
+  "Airtable, Google Workspace",
+];
+
+const pmSkills = [
+  "Roadmapping & milestone planning",
+  "Scope definition & prioritization",
+  "Stakeholder communication",
+  "Risk identification & mitigation",
+  "Agile / Scrum / Kanban rituals",
+  "Documentation & information architecture",
+  "Cross-functional facilitation",
+  "Product discovery & user research",
 ];
 
 function ResumePage() {
@@ -90,30 +144,107 @@ function ResumePage() {
       </section>
 
       <main className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-        {/* Professional Experience */}
-        <section>
-          <h2 className="text-2xl font-semibold sm:text-3xl">Professional Experience</h2>
+        {/* Draft notice */}
+        <div className="rounded-xl border border-dashed border-border bg-card/40 p-4 text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">Draft resume.</span>{" "}
+          Content marked <span className="font-mono text-xs">[DRAFT]</span> or in{" "}
+          <span className="font-mono text-xs">[brackets]</span> is placeholder copy to be replaced with
+          verified work history and credentials.
+        </div>
+
+        {/* Professional Summary */}
+        <section className="mt-12">
+          <h2 className="text-2xl font-semibold sm:text-3xl">Professional Summary</h2>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            This page highlights my professional background and complements the project work showcased
-            throughout this portfolio. A downloadable PDF version of my resume will also be available.
+            {professionalSummary}
           </p>
         </section>
 
-        {/* Placeholder Sections */}
+        {/* Work Experience */}
         <section className="mt-16">
-          <div className="grid gap-6 sm:grid-cols-2">
-            {placeholderSections.map((section) => (
-              <div
-                key={section.title}
-                className="rounded-2xl border border-border bg-card p-6 transition hover:border-primary/40"
+          <h2 className="text-2xl font-semibold sm:text-3xl">Work Experience</h2>
+          <div className="mt-8 space-y-6">
+            {experience.map((job) => (
+              <article
+                key={`${job.role}-${job.company}`}
+                className="rounded-2xl border border-border bg-card p-6 transition hover:border-primary/40 sm:p-8"
               >
-                <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{section.body}</p>
-                <div className="mt-4 inline-flex items-center rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground">
-                  Awaiting final resume content
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">{job.role}</h3>
+                    <p className="text-sm text-muted-foreground">{job.company}</p>
+                  </div>
+                  <div className="text-sm text-muted-foreground sm:text-right">
+                    <div>{job.period}</div>
+                    <div className="text-xs">{job.location}</div>
+                  </div>
                 </div>
-              </div>
+                <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
+                  {job.bullets.map((b, i) => (
+                    <li key={i}>{b}</li>
+                  ))}
+                </ul>
+              </article>
             ))}
+          </div>
+        </section>
+
+        {/* Education & Certifications */}
+        <section className="mt-16 grid gap-6 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <h2 className="text-xl font-semibold">Education</h2>
+            <div className="mt-4 space-y-4">
+              {education.map((e, i) => (
+                <div key={i}>
+                  <div className="font-medium text-foreground">{e.school}</div>
+                  <div className="text-sm text-muted-foreground">{e.credential}</div>
+                  <div className="text-xs text-muted-foreground">{e.period}</div>
+                  {e.note && (
+                    <div className="mt-1 text-xs text-muted-foreground/80">{e.note}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <h2 className="text-xl font-semibold">Certifications</h2>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              {certifications.map((c, i) => (
+                <li key={i} className="leading-relaxed">
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Skills */}
+        <section className="mt-16 grid gap-6 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <h2 className="text-xl font-semibold">Technical Skills</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {technicalSkills.map((s) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+            <h2 className="text-xl font-semibold">Project Management Skills</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {pmSkills.map((s) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center rounded-full border border-border bg-background/60 px-3 py-1 text-xs text-muted-foreground"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
 
