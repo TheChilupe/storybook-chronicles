@@ -53,7 +53,7 @@ const experience: ExperienceEntry[] = [
   {
     role: "[DRAFT — Project Manager Role]",
     company: "[Company Name]",
-    period: "[Start] — [End]",
+    period: "2026 — Current",
     location: "[City, State]",
     bullets: [
       "[Placeholder] Led cross-functional delivery of [initiative] across [teams], hitting [metric] under [constraint].",
