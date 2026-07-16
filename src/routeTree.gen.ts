@@ -14,6 +14,7 @@ import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SpoilerNotesRouteImport } from './routes/spoiler-notes'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as PowerSystemsRouteImport } from './routes/power-systems'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FactionsRouteImport } from './routes/factions'
 import { Route as CharactersRouteImport } from './routes/characters'
@@ -46,6 +47,11 @@ const ResetRoute = ResetRouteImport.update({
 const PowerSystemsRoute = PowerSystemsRouteImport.update({
   id: '/power-systems',
   path: '/power-systems',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/characters': typeof CharactersRouteWithChildren
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
+  '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/characters': typeof CharactersRouteWithChildren
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
+  '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/characters': typeof CharactersRouteWithChildren
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
+  '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
   '/spoiler-notes': typeof SpoilerNotesRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/characters'
     | '/factions'
     | '/login'
+    | '/portfolio'
     | '/power-systems'
     | '/reset'
     | '/spoiler-notes'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/characters'
     | '/factions'
     | '/login'
+    | '/portfolio'
     | '/power-systems'
     | '/reset'
     | '/spoiler-notes'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/characters'
     | '/factions'
     | '/login'
+    | '/portfolio'
     | '/power-systems'
     | '/reset'
     | '/spoiler-notes'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   CharactersRoute: typeof CharactersRouteWithChildren
   FactionsRoute: typeof FactionsRoute
   LoginRoute: typeof LoginRoute
+  PortfolioRoute: typeof PortfolioRoute
   PowerSystemsRoute: typeof PowerSystemsRoute
   ResetRoute: typeof ResetRoute
   SpoilerNotesRoute: typeof SpoilerNotesRoute
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/power-systems'
       fullPath: '/power-systems'
       preLoaderRoute: typeof PowerSystemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   CharactersRoute: CharactersRouteWithChildren,
   FactionsRoute: FactionsRoute,
   LoginRoute: LoginRoute,
+  PortfolioRoute: PortfolioRoute,
   PowerSystemsRoute: PowerSystemsRoute,
   ResetRoute: ResetRoute,
   SpoilerNotesRoute: SpoilerNotesRoute,
