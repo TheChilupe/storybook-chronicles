@@ -1,29 +1,129 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { charactersQO } from "@/lib/queries";
+import { useMemo } from "react";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { charactersQO, storiesQO } from "@/lib/queries";
 import { EntityPage } from "@/components/entity-page";
+import { CharacterSearch } from "@/components/character-search";
+import { CharacterCard } from "@/components/character-card";
+import {
+  useCharacterSearch,
+  type SearchableCharacter,
+} from "@/hooks/use-character-search";
+
+const searchSchema = z.object({
+  search: fallback(z.string(), "").default(""),
+});
 
 export const Route = createFileRoute("/characters")({
   head: () => ({ meta: [{ title: "Characters — Storybook Codex" }] }),
+  validateSearch: zodValidator(searchSchema),
   component: CharactersIndex,
 });
 
 function CharactersIndex() {
-  const { data = [] } = useQuery(charactersQO);
+  const { search } = Route.useSearch();
+  const navigate = useNavigate({ from: "/characters" });
+  const { data: characters = [] } = useQuery(charactersQO);
+  const { data: stories = [] } = useQuery(storiesQO);
+
+  const storyById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const s of stories as any[]) {
+      m.set(
+        s.id,
+        s.number != null ? `Story ${s.number} — ${s.title ?? s.name ?? ""}` : (s.title ?? s.name ?? ""),
+      );
+    }
+    return m;
+  }, [stories]);
+
+  const items: SearchableCharacter[] = useMemo(
+    () =>
+      (characters as any[]).map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        displayName: c.name,
+        realName: c.name,
+        heroName: c.alias ?? null,
+        aliases: c.alias ? [c.alias] : [],
+        story: c.primary_story_id
+          ? storyById.get(c.primary_story_id) ?? null
+          : c.story_id
+            ? storyById.get(c.story_id) ?? null
+            : null,
+        role: c.role ?? null,
+        description: c.tagline ?? null,
+        tags: [],
+        powers: [],
+        accent: c.accent_color,
+        eyebrow: c.eyebrow,
+        tagline: c.tagline,
+      })),
+    [characters, storyById],
+  );
+
+  const filtered = useCharacterSearch(items, search);
+
+  const setSearch = (v: string) => {
+    navigate({
+      search: (prev: { search?: string }) => ({ ...prev, search: v || undefined }),
+      replace: true,
+    });
+  };
+
+  const clear = () => setSearch("");
+
+  const total = items.length;
+  const count = filtered.length;
+  const isSearching = search.trim().length > 0;
+  const countLabel = isSearching
+    ? `${count} ${count === 1 ? "character" : "characters"} found`
+    : `${total} ${total === 1 ? "character" : "characters"}`;
+
   return (
     <EntityPage title="Characters">
-      <p className="mb-6 text-muted-foreground">Browse the cast across the Storybook Chronicles.</p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {data.map((c) => (
-          <Link key={c.id} to={"/characters/$slug" as any} params={{ slug: c.slug } as any}
-            className="rounded-2xl border border-border bg-card p-5 hover:border-primary"
-            style={{ borderTop: `4px solid ${c.accent_color}` }}>
-            {c.eyebrow && <span className="text-xs uppercase text-muted-foreground">{c.eyebrow}</span>}
-            <h3 className="mt-1 text-lg font-semibold">{c.name}{c.alias ? ` / ${c.alias}` : ""}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{c.tagline}</p>
-          </Link>
-        ))}
+      <p className="mb-6 text-muted-foreground">
+        Browse the cast across the Storybook Chronicles.
+      </p>
+
+      <div className="mb-3">
+        <CharacterSearch value={search} onChange={setSearch} />
       </div>
+
+      <p
+        aria-live="polite"
+        className="mb-6 text-sm text-muted-foreground"
+      >
+        {countLabel}
+      </p>
+
+      {filtered.length === 0 ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-2xl border border-border bg-card p-10 text-center"
+        >
+          <h2 className="text-lg font-semibold">No characters found</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try another name, alias, story, role, or ability.
+          </p>
+          <button
+            type="button"
+            onClick={clear}
+            className="mt-5 inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm transition hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            Clear Search
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((c) => (
+            <CharacterCard key={c.id} c={c} />
+          ))}
+        </div>
+      )}
     </EntityPage>
   );
 }
