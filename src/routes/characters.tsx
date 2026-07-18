@@ -3,14 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { charactersQO, storiesQO } from "@/lib/queries";
+import { charactersQO } from "@/lib/queries";
+import { toCharacterModel } from "@/lib/character-model";
 import { EntityPage } from "@/components/entity-page";
 import { CharacterSearch } from "@/components/character-search";
 import { CharacterCard } from "@/components/character-card";
-import {
-  useCharacterSearch,
-  type SearchableCharacter,
-} from "@/hooks/use-character-search";
+import { useCharacterSearch } from "@/hooks/use-character-search";
 
 const searchSchema = z.object({
   search: fallback(z.string(), "").default(""),
@@ -26,42 +24,10 @@ function CharactersIndex() {
   const { search } = Route.useSearch();
   const navigate = useNavigate({ from: "/characters" });
   const { data: characters = [] } = useQuery(charactersQO);
-  const { data: stories = [] } = useQuery(storiesQO);
 
-  const storyById = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const s of stories as any[]) {
-      m.set(
-        s.id,
-        s.number != null ? `Story ${s.number} — ${s.title ?? s.name ?? ""}` : (s.title ?? s.name ?? ""),
-      );
-    }
-    return m;
-  }, [stories]);
-
-  const items: SearchableCharacter[] = useMemo(
-    () =>
-      (characters as any[]).map((c) => ({
-        id: c.id,
-        slug: c.slug,
-        displayName: c.name,
-        realName: c.name,
-        heroName: c.alias ?? null,
-        aliases: c.alias ? [c.alias] : [],
-        story: c.primary_story_id
-          ? storyById.get(c.primary_story_id) ?? null
-          : c.story_id
-            ? storyById.get(c.story_id) ?? null
-            : null,
-        role: c.role ?? null,
-        description: c.tagline ?? null,
-        tags: [],
-        powers: [],
-        accent: c.accent_color,
-        eyebrow: c.eyebrow,
-        tagline: c.tagline,
-      })),
-    [characters, storyById],
+  const items = useMemo(
+    () => characters.map(toCharacterModel),
+    [characters],
   );
 
   const filtered = useCharacterSearch(items, search);
