@@ -167,6 +167,7 @@ export type Database = {
           identity_md: string | null
           last_synced_at: string | null
           name: string
+          notion_page_id: string | null
           notion_source_url: string | null
           portrait_url: string | null
           primary_story_id: string | null
@@ -189,6 +190,7 @@ export type Database = {
           identity_md?: string | null
           last_synced_at?: string | null
           name: string
+          notion_page_id?: string | null
           notion_source_url?: string | null
           portrait_url?: string | null
           primary_story_id?: string | null
@@ -211,6 +213,7 @@ export type Database = {
           identity_md?: string | null
           last_synced_at?: string | null
           name?: string
+          notion_page_id?: string | null
           notion_source_url?: string | null
           portrait_url?: string | null
           primary_story_id?: string | null
