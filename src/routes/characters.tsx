@@ -68,7 +68,7 @@ function CharactersIndex() {
 
   const setSearch = (v: string) => {
     navigate({
-      search: (prev) => ({ ...prev, search: v || undefined as any }),
+      search: (prev: { search?: string }) => ({ ...prev, search: v || undefined }),
       replace: true,
     });
   };
