@@ -1,38 +1,26 @@
 import { useMemo } from "react";
+import type { CharacterModel } from "@/lib/character-model";
+import { storyLabel } from "@/lib/character-model";
 
-export type SearchableCharacter = {
-  id: string;
-  slug: string;
-  displayName: string;
-  realName?: string | null;
-  heroName?: string | null;
-  aliases: string[];
-  story?: string | null;
-  role?: string | null;
-  description?: string | null;
-  tags: string[];
-  powers: string[];
-  accent?: string | null;
-  eyebrow?: string | null;
-  tagline?: string | null;
-};
+export type SearchableCharacter = CharacterModel;
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
 function haystack(c: SearchableCharacter): string {
+  const storyLabels = [
+    storyLabel(c.primaryStory),
+    ...c.stories.map((s) => storyLabel(s.story)),
+  ];
   return norm(
     [
       c.displayName,
-      c.realName,
       c.heroName,
-      ...(c.aliases ?? []),
-      c.story,
       c.role,
-      c.description,
       c.eyebrow,
       c.tagline,
-      ...(c.tags ?? []),
-      ...(c.powers ?? []),
+      ...storyLabels,
+      ...c.factions.map((f) => f.name),
+      ...c.powers.map((p) => p.name),
     ]
       .filter(Boolean)
       .join(" | "),
