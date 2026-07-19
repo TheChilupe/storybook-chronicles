@@ -6,11 +6,23 @@ import logo from "@/assets/logo-white.png";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Storybook Codex" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   component: LoginPage,
 });
 
+function safeNext(next: string | undefined): string | null {
+  if (!next) return null;
+  // Same-origin relative path only.
+  if (!next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 function LoginPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const nextPath = safeNext(next);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,11 +30,20 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
+  const goNext = () => {
+    if (nextPath) {
+      window.location.href = nextPath;
+    } else {
+      navigate({ to: "/" });
+    }
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session && isAllowed(data.session.user.email)) navigate({ to: "/" });
+      if (data.session && isAllowed(data.session.user.email)) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, nextPath]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +54,13 @@ function LoginPage() {
     try {
       const { error } = mode === "signin"
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/` } });
+        : await supabase.auth.signUp({
+            email,
+            password,
+            options: { emailRedirectTo: `${window.location.origin}${nextPath ?? "/"}` },
+          });
       if (error) throw error;
-      navigate({ to: "/" });
+      goNext();
     } catch (e: any) {
       setErr(e.message ?? "Something went wrong");
     } finally {
