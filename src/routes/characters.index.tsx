@@ -14,7 +14,7 @@ const searchSchema = z.object({
   search: fallback(z.string(), "").default(""),
 });
 
-export const Route = createFileRoute("/characters")({
+export const Route = createFileRoute("/characters/")({
   head: () => ({ meta: [{ title: "Characters — Storybook Codex" }] }),
   validateSearch: zodValidator(searchSchema),
   component: CharactersIndex,

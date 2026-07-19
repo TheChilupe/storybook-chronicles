@@ -21,11 +21,11 @@ import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FactionsRouteImport } from './routes/factions'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StorybookChroniclesIndexRouteImport } from './routes/storybook-chronicles.index'
+import { Route as CharactersIndexRouteImport } from './routes/characters.index'
 import { Route as StorybookChroniclesTimelineRouteImport } from './routes/storybook-chronicles.timeline'
 import { Route as StorybookChroniclesDevelopmentProcessRouteImport } from './routes/storybook-chronicles.development-process'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
@@ -91,11 +91,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CharactersRoute = CharactersRouteImport.update({
-  id: '/characters',
-  path: '/characters',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -117,6 +112,11 @@ const StorybookChroniclesIndexRoute =
     path: '/',
     getParentRoute: () => StorybookChroniclesRoute,
   } as any)
+const CharactersIndexRoute = CharactersIndexRouteImport.update({
+  id: '/characters/',
+  path: '/characters/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StorybookChroniclesTimelineRoute =
   StorybookChroniclesTimelineRouteImport.update({
     id: '/timeline',
@@ -135,16 +135,15 @@ const StoriesSlugRoute = StoriesSlugRouteImport.update({
   getParentRoute: () => StoriesRoute,
 } as any)
 const CharactersSlugRoute = CharactersSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => CharactersRoute,
+  id: '/characters/$slug',
+  path: '/characters/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
-  '/characters': typeof CharactersRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -161,13 +160,13 @@ export interface FileRoutesByFullPath {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
-  '/characters': typeof CharactersRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -183,6 +182,7 @@ export interface FileRoutesByTo {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/characters': typeof CharactersIndexRoute
   '/storybook-chronicles': typeof StorybookChroniclesIndexRoute
 }
 export interface FileRoutesById {
@@ -190,7 +190,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
-  '/characters': typeof CharactersRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -207,6 +206,7 @@ export interface FileRoutesById {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
 }
 export interface FileRouteTypes {
@@ -215,7 +215,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
-    | '/characters'
     | '/contact'
     | '/factions'
     | '/login'
@@ -232,13 +231,13 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/characters/'
     | '/storybook-chronicles/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/admin'
-    | '/characters'
     | '/contact'
     | '/factions'
     | '/login'
@@ -254,13 +253,13 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/characters'
     | '/storybook-chronicles'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
-    | '/characters'
     | '/contact'
     | '/factions'
     | '/login'
@@ -277,6 +276,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/characters/'
     | '/storybook-chronicles/'
   fileRoutesById: FileRoutesById
 }
@@ -284,7 +284,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
-  CharactersRoute: typeof CharactersRouteWithChildren
   ContactRoute: typeof ContactRoute
   FactionsRoute: typeof FactionsRoute
   LoginRoute: typeof LoginRoute
@@ -297,6 +296,8 @@ export interface RootRouteChildren {
   StoriesRoute: typeof StoriesRouteWithChildren
   StorybookChroniclesRoute: typeof StorybookChroniclesRouteWithChildren
   WorldsRoute: typeof WorldsRoute
+  CharactersSlugRoute: typeof CharactersSlugRoute
+  CharactersIndexRoute: typeof CharactersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -385,13 +386,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/characters': {
-      id: '/characters'
-      path: '/characters'
-      fullPath: '/characters'
-      preLoaderRoute: typeof CharactersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -420,6 +414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StorybookChroniclesIndexRouteImport
       parentRoute: typeof StorybookChroniclesRoute
     }
+    '/characters/': {
+      id: '/characters/'
+      path: '/characters'
+      fullPath: '/characters/'
+      preLoaderRoute: typeof CharactersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/storybook-chronicles/timeline': {
       id: '/storybook-chronicles/timeline'
       path: '/timeline'
@@ -443,25 +444,13 @@ declare module '@tanstack/react-router' {
     }
     '/characters/$slug': {
       id: '/characters/$slug'
-      path: '/$slug'
+      path: '/characters/$slug'
       fullPath: '/characters/$slug'
       preLoaderRoute: typeof CharactersSlugRouteImport
-      parentRoute: typeof CharactersRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface CharactersRouteChildren {
-  CharactersSlugRoute: typeof CharactersSlugRoute
-}
-
-const CharactersRouteChildren: CharactersRouteChildren = {
-  CharactersSlugRoute: CharactersSlugRoute,
-}
-
-const CharactersRouteWithChildren = CharactersRoute._addFileChildren(
-  CharactersRouteChildren,
-)
 
 interface StoriesRouteChildren {
   StoriesSlugRoute: typeof StoriesSlugRoute
@@ -494,7 +483,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
-  CharactersRoute: CharactersRouteWithChildren,
   ContactRoute: ContactRoute,
   FactionsRoute: FactionsRoute,
   LoginRoute: LoginRoute,
@@ -507,17 +495,9 @@ const rootRouteChildren: RootRouteChildren = {
   StoriesRoute: StoriesRouteWithChildren,
   StorybookChroniclesRoute: StorybookChroniclesRouteWithChildren,
   WorldsRoute: WorldsRoute,
+  CharactersSlugRoute: CharactersSlugRoute,
+  CharactersIndexRoute: CharactersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
