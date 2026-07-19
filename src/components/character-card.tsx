@@ -5,9 +5,10 @@ export function CharacterCard({ c }: { c: CharacterModel }) {
   const accent = c.accent ?? "hsl(var(--primary))";
   return (
     <Link
-      to={"/characters/$slug" as any}
-      params={{ slug: c.slug } as any}
-      className="rounded-2xl border border-border bg-card p-5 transition hover:border-primary"
+      to="/characters/$slug"
+      params={{ slug: c.slug }}
+      aria-label={`View profile: ${c.displayName}${c.heroName ? ` / ${c.heroName}` : ""}`}
+      className="group block rounded-2xl border border-border bg-card p-5 transition hover:border-primary hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       style={{ borderTop: `4px solid ${accent}` }}
     >
       <div
@@ -40,6 +41,10 @@ export function CharacterCard({ c }: { c: CharacterModel }) {
       {c.tagline && (
         <p className="mt-2 text-sm text-muted-foreground">{c.tagline}</p>
       )}
+      <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-70 transition group-hover:opacity-100">
+        View profile
+        <span aria-hidden="true">→</span>
+      </span>
     </Link>
   );
 }
