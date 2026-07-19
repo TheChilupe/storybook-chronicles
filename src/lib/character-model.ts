@@ -26,7 +26,8 @@ export function storyLabel(s: StoryRef | null | undefined): string | null {
   return s.number != null ? `Story ${s.number} — ${s.title}` : s.title;
 }
 
-function initialsFor(name: string, alias?: string | null): string {
+function initialsFor(name: string, alias?: string | null, slug?: string): string {
+  if (slug === "rush") return "TZ";
   const source = (alias || name || "").trim();
   const parts = source.split(/\s+/).filter(Boolean);
   const chars = parts.length >= 2 ? parts[0][0] + parts[1][0] : source.slice(0, 2);
