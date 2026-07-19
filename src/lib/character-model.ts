@@ -54,7 +54,7 @@ export function toCharacterModel(c: CharacterWithRelations): CharacterModel {
     role: c.role,
     accent: c.accent_color,
     portraitUrl: c.portrait_url,
-    initials: initialsFor(c.name, c.alias),
+    initials: initialsFor(c.name, c.alias, c.slug),
     primaryStory: c.primary_story ?? null,
     stories,
     factions,
