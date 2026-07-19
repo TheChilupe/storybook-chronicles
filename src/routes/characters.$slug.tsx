@@ -42,6 +42,7 @@ function metaFromRow(row: {
 }
 
 export const Route = createFileRoute("/characters/$slug")({
+  ssr: false,
   loader: async ({ params, context }) => {
     const row = await context.queryClient.ensureQueryData(characterQO(params.slug));
     if (!row) throw notFound();
