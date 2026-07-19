@@ -26,23 +26,17 @@ export function CharacterCard({ c }: { c: CharacterModel }) {
             loading="lazy"
           />
         ) : (
-          <span className="text-2xl font-semibold text-white/95 drop-shadow-sm">
-            {c.initials}
-          </span>
+          <span className="text-2xl font-semibold text-white/95 drop-shadow-sm">{c.initials}</span>
         )}
       </div>
       {c.eyebrow && (
-        <span className="text-xs uppercase tracking-wider text-muted-foreground">
-          {c.eyebrow}
-        </span>
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">{c.eyebrow}</span>
       )}
       <h3 className="mt-1 text-lg font-semibold">
         {c.displayName}
         {c.heroName ? ` / ${c.heroName}` : ""}
       </h3>
-      {c.tagline && (
-        <p className="mt-2 text-sm text-muted-foreground">{c.tagline}</p>
-      )}
+      {c.tagline && <p className="mt-2 text-sm text-muted-foreground">{c.tagline}</p>}
       <span
         className="mt-4 inline-flex items-center gap-1 text-sm font-semibold underline-offset-2 decoration-from-font group-hover/card:underline motion-reduce:transition-none"
         style={{ color: accent }}
