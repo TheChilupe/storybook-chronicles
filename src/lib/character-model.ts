@@ -15,6 +15,10 @@ export type CharacterModel = {
   stories: Array<{ story: StoryRef; role: string | null }>;
   factions: Array<{ id: string; slug: string; name: string; role: string | null }>;
   powers: Array<{ id: string; slug: string; name: string; notes: string | null }>;
+  overview: string | null;
+  identity: string | null;
+  storyRole: string | null;
+  spoiler: string | null;
 };
 
 export function storyLabel(s: StoryRef | null | undefined): string | null {
@@ -54,5 +58,9 @@ export function toCharacterModel(c: CharacterWithRelations): CharacterModel {
     stories,
     factions,
     powers,
+    overview: c.canon_summary_md ?? null,
+    identity: c.identity_md ?? null,
+    storyRole: c.story_role_md ?? null,
+    spoiler: c.spoiler_md ?? null,
   };
 }
