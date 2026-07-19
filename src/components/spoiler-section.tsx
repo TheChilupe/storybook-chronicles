@@ -4,6 +4,7 @@ import { Markdown } from "./markdown";
 export function SpoilerSection({ scope, title = "Spoilers", body }: { scope: string; title?: string; body: string }) {
   const { revealed, toggle } = useSpoilers(scope);
   if (!body?.trim()) return null;
+  const regionId = `spoiler-${scope}`;
   return (
     <section className="spoiler-box mt-6">
       <div className="mb-2 flex items-center justify-between gap-3">
@@ -12,14 +13,22 @@ export function SpoilerSection({ scope, title = "Spoilers", body }: { scope: str
         </h2>
         <button
           onClick={toggle}
-          className="rounded-md border border-border px-2 py-1 text-xs hover:bg-secondary"
+          aria-expanded={revealed}
+          aria-controls={regionId}
+          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
         >
-          {revealed ? "Hide" : "Reveal"}
+          {revealed ? "Hide spoilers" : "Reveal spoilers"}
         </button>
       </div>
-      {revealed ? <Markdown>{body}</Markdown> : (
-        <p className="text-sm text-muted-foreground">Hidden until you reveal spoilers.</p>
-      )}
+      <div id={regionId} role="region" aria-live="polite">
+        {revealed ? (
+          <Markdown>{body}</Markdown>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Warning: this section contains story spoilers. Hidden until you reveal.
+          </p>
+        )}
+      </div>
     </section>
   );
 }
