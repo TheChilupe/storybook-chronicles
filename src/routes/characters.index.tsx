@@ -22,7 +22,7 @@ export const Route = createFileRoute("/characters/")({
 
 function CharactersIndex() {
   const { search } = Route.useSearch();
-  const navigate = useNavigate({ from: "/characters" });
+  const navigate = useNavigate({ from: "/characters/" });
   const { data: characters = [] } = useQuery(charactersQO);
 
   const items = useMemo(
