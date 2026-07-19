@@ -28,6 +28,7 @@ export function storyLabel(s: StoryRef | null | undefined): string | null {
 
 function initialsFor(name: string, alias?: string | null, slug?: string): string {
   if (slug === "rush") return "TZ";
+  if (slug === "tim-malcolm") return "TM";
   const source = (alias || name || "").trim();
   const parts = source.split(/\s+/).filter(Boolean);
   const chars = parts.length >= 2 ? parts[0][0] + parts[1][0] : source.slice(0, 2);
