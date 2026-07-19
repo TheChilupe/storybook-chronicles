@@ -14,7 +14,7 @@ const searchSchema = z.object({
   search: fallback(z.string(), "").default(""),
 });
 
-export const Route = createFileRoute("/characters")({
+export const Route = createFileRoute("/characters/")({
   head: () => ({ meta: [{ title: "Characters — Storybook Codex" }] }),
   validateSearch: zodValidator(searchSchema),
   component: CharactersIndex,
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/characters")({
 
 function CharactersIndex() {
   const { search } = Route.useSearch();
-  const navigate = useNavigate({ from: "/characters" });
+  const navigate = useNavigate({ from: "/characters/" });
   const { data: characters = [] } = useQuery(charactersQO);
 
   const items = useMemo(
