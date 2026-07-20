@@ -103,27 +103,29 @@ function Portrait({ m }: { m: CharacterModel }) {
   return (
     <div className="flex shrink-0 flex-col items-center gap-3 self-center sm:items-start sm:self-start">
       <div
-        className="relative"
-        style={{ filter: `drop-shadow(0 10px 30px ${accentMix(m, 22)})` }}
+        className="relative flex aspect-[2/3] w-44 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted sm:w-60 md:w-72 lg:w-80"
+        style={{
+          boxShadow: `0 10px 30px ${accentMix(m, 22)}`,
+          ...(showImg ? {} : { backgroundColor: accent }),
+        }}
+        aria-hidden={showImg ? undefined : true}
       >
-        <div
-          className="flex h-56 w-44 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted sm:h-72 sm:w-60 md:h-80 md:w-[15rem]"
-          style={showImg ? undefined : { backgroundColor: accent }}
-          aria-hidden={showImg ? undefined : true}
-        >
-          {showImg ? (
-            <img
-              src={m.portraitUrl!}
-              alt={`${m.displayName}${m.heroName ? ` / ${m.heroName}` : ""} portrait`}
-              className="h-full w-full object-cover"
-              onError={() => setFailed(true)}
-            />
-          ) : (
-            <span className="text-5xl font-semibold text-white/95 drop-shadow-sm sm:text-6xl">
-              {m.initials}
-            </span>
-          )}
-        </div>
+        {showImg ? (
+          <img
+            src={m.portraitUrl!}
+            alt={`${m.displayName}${m.heroName ? ` / ${m.heroName}` : ""} portrait`}
+            width={1024}
+            height={1536}
+            loading="eager"
+            decoding="async"
+            className="block h-full w-full object-cover object-top"
+            onError={() => setFailed(true)}
+          />
+        ) : (
+          <span className="text-5xl font-semibold text-white/95 drop-shadow-sm sm:text-6xl">
+            {m.initials}
+          </span>
+        )}
       </div>
       <PortraitUploader m={m} />
     </div>
