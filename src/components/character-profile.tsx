@@ -4,6 +4,8 @@ import type { CharacterModel } from "@/lib/character-model";
 import { storyLabel } from "@/lib/character-model";
 import { Markdown } from "@/components/markdown";
 import { SpoilerSection } from "@/components/spoiler-section";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ---------------- utilities ---------------- */
 
@@ -99,31 +101,87 @@ function Portrait({ m }: { m: CharacterModel }) {
   const accent = accentOf(m);
   const showImg = m.portraitUrl && !failed;
   return (
-    <div
-      className="relative shrink-0 self-center sm:self-start"
-      style={{
-        // subtle accent glow
-        filter: `drop-shadow(0 10px 30px ${accentMix(m, 22)})`,
-      }}
-    >
+    <div className="flex shrink-0 flex-col items-center gap-3 self-center sm:items-start sm:self-start">
       <div
-        className="flex h-56 w-44 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted sm:h-72 sm:w-60 md:h-80 md:w-[15rem]"
-        style={showImg ? undefined : { backgroundColor: accent }}
-        aria-hidden={showImg ? undefined : true}
+        className="relative"
+        style={{ filter: `drop-shadow(0 10px 30px ${accentMix(m, 22)})` }}
       >
-        {showImg ? (
-          <img
-            src={m.portraitUrl!}
-            alt={`${m.displayName}${m.heroName ? ` / ${m.heroName}` : ""} portrait`}
-            className="h-full w-full object-cover"
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <span className="text-5xl font-semibold text-white/95 drop-shadow-sm sm:text-6xl">
-            {m.initials}
-          </span>
-        )}
+        <div
+          className="flex h-56 w-44 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted sm:h-72 sm:w-60 md:h-80 md:w-[15rem]"
+          style={showImg ? undefined : { backgroundColor: accent }}
+          aria-hidden={showImg ? undefined : true}
+        >
+          {showImg ? (
+            <img
+              src={m.portraitUrl!}
+              alt={`${m.displayName}${m.heroName ? ` / ${m.heroName}` : ""} portrait`}
+              className="h-full w-full object-cover"
+              onError={() => setFailed(true)}
+            />
+          ) : (
+            <span className="text-5xl font-semibold text-white/95 drop-shadow-sm sm:text-6xl">
+              {m.initials}
+            </span>
+          )}
+        </div>
       </div>
+      <PortraitUploader m={m} />
+    </div>
+  );
+}
+
+function PortraitUploader({ m }: { m: CharacterModel }) {
+  const { allowed } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!allowed) return null;
+
+  async function handleFile(file: File) {
+    setBusy(true);
+    setError(null);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `characters/${m.slug}-${Date.now()}.${ext}`;
+      const up = await supabase.storage
+        .from("lore-images")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (up.error) throw up.error;
+      // Bucket is private; use a long-lived signed URL so public visitors can view.
+      const signed = await supabase.storage
+        .from("lore-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed.error || !signed.data?.signedUrl) throw signed.error ?? new Error("Failed to sign URL");
+      const upd = await supabase
+        .from("characters")
+        .update({ portrait_url: signed.data.signedUrl })
+        .eq("id", m.id);
+      if (upd.error) throw upd.error;
+      window.location.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="w-full max-w-[15rem]">
+      <label
+        className={`inline-flex w-full cursor-pointer items-center justify-center rounded-md border border-border bg-background/60 px-3 py-2 text-xs font-medium transition hover:border-primary ${busy ? "pointer-events-none opacity-60" : ""}`}
+      >
+        {busy ? "Uploading…" : "Upload portrait"}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          disabled={busy}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+          }}
+        />
+      </label>
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   );
 }
