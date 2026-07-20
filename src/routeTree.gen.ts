@@ -27,12 +27,16 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StorybookChroniclesIndexRouteImport } from './routes/storybook-chronicles.index'
 import { Route as CharactersIndexRouteImport } from './routes/characters.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StorybookChroniclesTimelineRouteImport } from './routes/storybook-chronicles.timeline'
 import { Route as StorybookChroniclesDevelopmentProcessRouteImport } from './routes/storybook-chronicles.development-process'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as CharactersSlugRouteImport } from './routes/characters.$slug'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as AdminCharactersIndexRouteImport } from './routes/admin.characters.index'
+import { Route as AdminCharactersNewRouteImport } from './routes/admin.characters.new'
+import { Route as AdminCharactersIdRouteImport } from './routes/admin.characters.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
@@ -127,6 +131,11 @@ const CharactersIndexRoute = CharactersIndexRouteImport.update({
   path: '/characters/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const StorybookChroniclesTimelineRoute =
   StorybookChroniclesTimelineRouteImport.update({
     id: '/timeline',
@@ -161,6 +170,21 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminCharactersIndexRoute = AdminCharactersIndexRouteImport.update({
+  id: '/characters/',
+  path: '/characters/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCharactersNewRoute = AdminCharactersNewRouteImport.update({
+  id: '/characters/new',
+  path: '/characters/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCharactersIdRoute = AdminCharactersIdRouteImport.update({
+  id: '/characters/$id',
+  path: '/characters/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -176,7 +200,7 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -196,15 +220,18 @@ export interface FileRoutesByFullPath {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/admin/': typeof AdminIndexRoute
   '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/characters/$id': typeof AdminCharactersIdRoute
+  '/admin/characters/new': typeof AdminCharactersNewRoute
+  '/admin/characters/': typeof AdminCharactersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -223,16 +250,20 @@ export interface FileRoutesByTo {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/admin': typeof AdminIndexRoute
   '/characters': typeof CharactersIndexRoute
   '/storybook-chronicles': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/characters/$id': typeof AdminCharactersIdRoute
+  '/admin/characters/new': typeof AdminCharactersNewRoute
+  '/admin/characters': typeof AdminCharactersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -252,10 +283,14 @@ export interface FileRoutesById {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/admin/': typeof AdminIndexRoute
   '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/characters/$id': typeof AdminCharactersIdRoute
+  '/admin/characters/new': typeof AdminCharactersNewRoute
+  '/admin/characters/': typeof AdminCharactersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -282,15 +317,18 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/admin/'
     | '/characters/'
     | '/storybook-chronicles/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/characters/$id'
+    | '/admin/characters/new'
+    | '/admin/characters/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/admin'
     | '/contact'
     | '/factions'
     | '/login'
@@ -309,10 +347,14 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/admin'
     | '/characters'
     | '/storybook-chronicles'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/characters/$id'
+    | '/admin/characters/new'
+    | '/admin/characters'
   id:
     | '__root__'
     | '/'
@@ -337,16 +379,20 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/admin/'
     | '/characters/'
     | '/storybook-chronicles/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/characters/$id'
+    | '/admin/characters/new'
+    | '/admin/characters/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   FactionsRoute: typeof FactionsRoute
   LoginRoute: typeof LoginRoute
@@ -496,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CharactersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/storybook-chronicles/timeline': {
       id: '/storybook-chronicles/timeline'
       path: '/timeline'
@@ -538,6 +591,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/characters/': {
+      id: '/admin/characters/'
+      path: '/characters'
+      fullPath: '/admin/characters/'
+      preLoaderRoute: typeof AdminCharactersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/characters/new': {
+      id: '/admin/characters/new'
+      path: '/characters/new'
+      fullPath: '/admin/characters/new'
+      preLoaderRoute: typeof AdminCharactersNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/characters/$id': {
+      id: '/admin/characters/$id'
+      path: '/characters/$id'
+      fullPath: '/admin/characters/$id'
+      preLoaderRoute: typeof AdminCharactersIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -554,6 +628,22 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminCharactersIdRoute: typeof AdminCharactersIdRoute
+  AdminCharactersNewRoute: typeof AdminCharactersNewRoute
+  AdminCharactersIndexRoute: typeof AdminCharactersIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminCharactersIdRoute: AdminCharactersIdRoute,
+  AdminCharactersNewRoute: AdminCharactersNewRoute,
+  AdminCharactersIndexRoute: AdminCharactersIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface StoriesRouteChildren {
   StoriesSlugRoute: typeof StoriesSlugRoute
@@ -585,7 +675,7 @@ const StorybookChroniclesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
   FactionsRoute: FactionsRoute,
   LoginRoute: LoginRoute,
