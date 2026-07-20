@@ -641,8 +641,13 @@ export function CharacterProfile({
       <CharacterBreadcrumb name={m.heroName || m.displayName} />
       <CharacterHero m={m} />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
-        <div className="min-w-0 space-y-6 lg:order-2">
+      {/* Mobile/tablet: Quick Facts directly after hero */}
+      <div className="mt-6 lg:hidden">
+        <CharacterQuickFacts m={m} />
+      </div>
+
+      <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)] lg:gap-6">
+        <main className="min-w-0 space-y-6">
           <CharacterOverview m={m} />
           <CharacterIdentity m={m} />
           <CharacterPowers m={m} />
@@ -650,15 +655,20 @@ export function CharacterProfile({
           <CharacterStoryRoleSection m={m} />
           <CharacterRelationships items={relationships} accent={accent} />
           <CharacterStoryAppearances m={m} />
-          <CharacterRelatedLore m={m} />
-          <CharacterGallery images={gallery} />
+          <div className="lg:hidden space-y-6">
+            <CharacterRelatedLore m={m} />
+          </div>
           {spoilerBody && (
             <SpoilerSection scope={`char-${m.slug}`} body={spoilerBody} />
           )}
-        </div>
-        <div className="lg:order-1 lg:sticky lg:top-6 lg:self-start">
-          <CharacterQuickFacts m={m} />
-        </div>
+          <CharacterGallery images={gallery} />
+        </main>
+        <aside className="hidden lg:block">
+          <div className="lg:sticky lg:top-24 space-y-6">
+            <CharacterQuickFacts m={m} />
+            <CharacterRelatedLore m={m} />
+          </div>
+        </aside>
       </div>
     </article>
   );
