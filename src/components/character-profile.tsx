@@ -980,6 +980,10 @@ export function CharacterProfile({
   spoilerBody: string | null;
 }) {
   // future: relationships/limitations/gallery when schema supports them
+  // Legacy long-form relationships/limitations/gallery — kept for backward-compat
+  // but not populated from the model. New reusable sections are data-driven from
+  // CharacterModel (progression, storyProgression, relationshipCards, keyMoments,
+  // quotes, coreConflict) and auto-hide when empty.
   const relationships = useMemo<Relationship[]>(() => [], []);
   const limitations = useMemo<Limitation[]>(() => [], []);
   const gallery = useMemo<GalleryImage[]>(() => [], []);
@@ -998,11 +1002,17 @@ export function CharacterProfile({
       <div className="mt-6 lg:grid lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)] lg:gap-6">
         <main className="min-w-0 space-y-6">
           <CharacterOverview m={m} />
+          <CharacterCoreConflict body={m.coreConflict} accent={accent} />
           <CharacterIdentity m={m} />
+          <CharacterProgression items={m.progression} accent={accent} />
           <CharacterPowers m={m} />
           <CharacterLimitations items={limitations} />
           <CharacterStoryRoleSection m={m} />
+          <CharacterStoryProgression items={m.storyProgression} accent={accent} />
+          <CharacterRelationshipCards items={m.relationshipCards} accent={accent} />
           <CharacterRelationships items={relationships} accent={accent} />
+          <CharacterKeyMoments items={m.keyMoments} accent={accent} />
+          <CharacterQuotes items={m.quotes} accent={accent} />
           <CharacterStoryAppearances m={m} />
           <div className="lg:hidden space-y-6">
             <CharacterRelatedLore m={m} />
