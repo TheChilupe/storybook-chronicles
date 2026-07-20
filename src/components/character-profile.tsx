@@ -541,6 +541,288 @@ export function CharacterRelationships({
   );
 }
 
+/* ---------------- core conflict ---------------- */
+
+export function CharacterCoreConflict({
+  body,
+  accent,
+}: {
+  body: string | null | undefined;
+  accent: string;
+}) {
+  if (!body?.trim()) return null;
+  return (
+    <section
+      id="core-conflict"
+      aria-labelledby="core-conflict-title"
+      className="rounded-2xl border bg-card p-6 sm:p-8"
+      style={{
+        borderColor: `color-mix(in oklab, ${accent} 45%, var(--color-border))`,
+        borderLeftWidth: 4,
+        borderLeftColor: accent,
+        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 6%, var(--color-card)) 0%, var(--color-card) 65%)`,
+      }}
+    >
+      <p
+        className="mb-2 text-xs font-semibold uppercase tracking-[0.14em]"
+        style={{ color: accent }}
+      >
+        The defining tension
+      </p>
+      <h2
+        id="core-conflict-title"
+        className="mb-4 text-xl font-semibold sm:text-2xl"
+      >
+        Core Conflict
+      </h2>
+      <div
+        className="max-w-[65ch] text-lg italic leading-relaxed text-foreground/95"
+        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+      >
+        <Markdown>{body}</Markdown>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- character progression timeline ---------------- */
+
+export function CharacterProgression({
+  items,
+  accent,
+}: {
+  items: ProgressionEra[] | undefined | null;
+  accent: string;
+}) {
+  if (!items?.length) return null;
+  return (
+    <CharacterSection id="progression" title="Character Progression" accent={accent}>
+      <ol className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((e, i) => (
+          <li
+            key={`${e.era}-${i}`}
+            className="relative rounded-xl border border-border bg-background/40 p-4"
+            style={{ borderTop: `3px solid ${accent}` }}
+          >
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+              style={{ color: accent }}
+            >
+              {e.era}
+            </p>
+            <p className="mt-1.5 text-base font-semibold text-foreground">
+              {e.identity}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{e.function}</p>
+            <span
+              aria-hidden="true"
+              className="mt-3 hidden text-xs text-muted-foreground sm:block"
+            >
+              {i < items.length - 1 ? "↓" : ""}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- story progression (per-story narrative role) ---------------- */
+
+export function CharacterStoryProgression({
+  items,
+  accent,
+}: {
+  items: StoryProgressionEntry[] | undefined | null;
+  accent: string;
+}) {
+  if (!items?.length) return null;
+  const sorted = [...items].sort((a, b) => {
+    const an = a.story.number ?? Number.POSITIVE_INFINITY;
+    const bn = b.story.number ?? Number.POSITIVE_INFINITY;
+    return an - bn;
+  });
+  return (
+    <CharacterSection id="story-progression" title="Story Progression" accent={accent}>
+      <div className="grid gap-3">
+        {sorted.map((s) => (
+          <article
+            key={s.story.id}
+            className="rounded-xl border border-border bg-background/40 p-4"
+            style={{ borderLeft: `3px solid ${accent}` }}
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <p className="text-sm font-semibold">
+                {s.story.number != null && (
+                  <span className="mr-2 text-muted-foreground">
+                    Story {s.story.number}
+                  </span>
+                )}
+                {s.story.title}
+              </p>
+              {s.role && (
+                <span
+                  className="text-xs font-medium uppercase tracking-wider"
+                  style={{ color: accent }}
+                >
+                  {s.role}
+                </span>
+              )}
+            </div>
+            {s.summary?.trim() && (
+              <div className="mt-2 max-w-[65ch] text-sm text-foreground/90">
+                <Markdown>{s.summary}</Markdown>
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- relationship cards (compact, discovery-focused) ---------------- */
+
+export function CharacterRelationshipCards({
+  items,
+  accent,
+}: {
+  items: RelationshipCard[] | undefined | null;
+  accent: string;
+}) {
+  // Drop cards that point at unpublished characters.
+  const cards = (items ?? []).filter((c) => c.characterSlug?.trim());
+  if (!cards.length) return null;
+  return (
+    <CharacterSection id="relationships" title="Relationships">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
+          <li key={c.characterSlug}>
+            <Link
+              to="/characters/$slug"
+              params={{ slug: c.characterSlug }}
+              className="group flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3 transition duration-150 ease-out hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              <div
+                className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-muted transition-transform duration-150 ease-out group-hover:scale-[1.06]"
+                style={c.portraitUrl ? undefined : { backgroundColor: accent }}
+                aria-hidden="true"
+              >
+                {c.portraitUrl ? (
+                  <img
+                    src={c.portraitUrl}
+                    alt=""
+                    className="h-full w-full object-cover object-top"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-white/95">
+                    {(c.initials || c.name.slice(0, 2)).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{c.name}</p>
+                <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">
+                  {c.relation}
+                </p>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- key moments ---------------- */
+
+export function CharacterKeyMoments({
+  items,
+  accent,
+}: {
+  items: KeyMoment[] | undefined | null;
+  accent: string;
+}) {
+  if (!items?.length) return null;
+  const sorted = [...items].sort((a, b) => {
+    const ao = a.order ?? Number.POSITIVE_INFINITY;
+    const bo = b.order ?? Number.POSITIVE_INFINITY;
+    if (ao !== bo) return ao - bo;
+    const an = a.story?.number ?? Number.POSITIVE_INFINITY;
+    const bn = b.story?.number ?? Number.POSITIVE_INFINITY;
+    return an - bn;
+  });
+  return (
+    <CharacterSection id="key-moments" title="Key Moments" accent={accent}>
+      <ol className="grid gap-3">
+        {sorted.map((k, i) => (
+          <li
+            key={`${k.title}-${i}`}
+            className="rounded-xl border border-border bg-background/40 p-4"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 className="text-sm font-semibold text-foreground">{k.title}</h3>
+              {k.story && (
+                <span
+                  className="text-xs font-medium uppercase tracking-wider"
+                  style={{ color: accent }}
+                >
+                  {storyLabel(k.story)}
+                </span>
+              )}
+            </div>
+            {k.summary?.trim() && (
+              <div className="mt-2 max-w-[65ch] text-sm text-foreground/90">
+                <Markdown>{k.summary}</Markdown>
+              </div>
+            )}
+          </li>
+        ))}
+      </ol>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- quotes ---------------- */
+
+export function CharacterQuotes({
+  items,
+  accent,
+}: {
+  items: CharacterQuote[] | undefined | null;
+  accent: string;
+}) {
+  if (!items?.length) return null;
+  return (
+    <CharacterSection id="quotes" title="Quotes" accent={accent}>
+      <ul className="grid gap-4 sm:grid-cols-2">
+        {items.map((q, i) => (
+          <li
+            key={i}
+            className="rounded-xl border border-border bg-background/40 p-5"
+            style={{ borderLeft: `3px solid ${accent}` }}
+          >
+            <blockquote
+              className="text-base italic leading-relaxed text-foreground/95"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              <span aria-hidden="true" style={{ color: accent }}>“</span>
+              {q.quote}
+              <span aria-hidden="true" style={{ color: accent }}>”</span>
+            </blockquote>
+            {q.context?.trim() && (
+              <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
+                {q.context}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </CharacterSection>
+  );
+}
+
 /* ---------------- story appearances ---------------- */
 
 export function CharacterStoryAppearances({ m }: { m: CharacterModel }) {
