@@ -1,5 +1,49 @@
 import type { CharacterWithRelations, StoryRef } from "@/lib/queries";
 
+/* ----- reusable optional profile data (v0.3 architecture) ----- */
+
+export type ProgressionEra = {
+  /** e.g. "Childhood", "Story 2", "Post-war" */
+  era: string;
+  /** What the character is known as during this era */
+  identity: string;
+  /** Their narrative function during this era */
+  function: string;
+};
+
+export type StoryProgressionEntry = {
+  story: StoryRef;
+  role: string | null;
+  /** Markdown summary of their narrative arc within this story */
+  summary: string;
+};
+
+/**
+ * Compact relationship card. Only renders when `characterSlug` points at a
+ * published character page — otherwise the card is dropped by the UI.
+ */
+export type RelationshipCard = {
+  characterSlug: string;
+  name: string;
+  relation: string;
+  portraitUrl?: string | null;
+  initials?: string | null;
+};
+
+export type KeyMoment = {
+  title: string;
+  story?: StoryRef | null;
+  /** Approx chronological order; lower renders first */
+  order?: number | null;
+  /** Markdown summary */
+  summary: string;
+};
+
+export type CharacterQuote = {
+  quote: string;
+  context?: string | null;
+};
+
 export type CharacterModel = {
   id: string;
   slug: string;
@@ -19,6 +63,13 @@ export type CharacterModel = {
   identity: string | null;
   storyRole: string | null;
   spoiler: string | null;
+  /* --- optional structured sections (default to empty; backfilled once schema lands) --- */
+  coreConflict: string | null;
+  progression: ProgressionEra[];
+  storyProgression: StoryProgressionEntry[];
+  relationshipCards: RelationshipCard[];
+  keyMoments: KeyMoment[];
+  quotes: CharacterQuote[];
 };
 
 export function storyLabel(s: StoryRef | null | undefined): string | null {
@@ -64,5 +115,14 @@ export function toCharacterModel(c: CharacterWithRelations): CharacterModel {
     identity: c.identity_md ?? null,
     storyRole: c.story_role_md ?? null,
     spoiler: c.spoiler_md ?? null,
+    // Placeholder architecture — populated once character_eras,
+    // character_relationships, character_story_notes, character_quotes,
+    // character_key_moments tables ship. Empty arrays keep sections hidden.
+    coreConflict: null,
+    progression: [],
+    storyProgression: [],
+    relationshipCards: [],
+    keyMoments: [],
+    quotes: [],
   };
 }
