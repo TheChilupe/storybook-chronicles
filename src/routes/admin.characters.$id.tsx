@@ -142,7 +142,7 @@ function CharacterEditor() {
       if (!form.name.trim()) throw new Error("Name is required.");
 
       const { data: userRes } = await supabase.auth.getUser();
-      const patch: Record<string, unknown> = {
+      const patch = {
         slug: form.slug.trim(),
         name: form.name.trim(),
         alias: form.alias.trim() || null,
@@ -159,7 +159,7 @@ function CharacterEditor() {
         spoiler_md: form.spoiler_md,
         portrait_url: form.portrait_url.trim() || null,
         updated_by: userRes.user?.id ?? null,
-      };
+      } as const;
       const { error: upErr } = await supabase.from("characters").update(patch).eq("id", id);
       if (upErr) throw upErr;
       await invalidate();
