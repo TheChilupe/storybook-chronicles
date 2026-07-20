@@ -46,7 +46,12 @@ export const characterQO = (slug: string) => queryOptions({
           primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
           character_stories(role, stories(id, slug, number, title)),
           character_factions(role, factions(id, slug, name)),
-          character_powers(notes, power_systems(id, slug, name))`,
+          character_powers(notes, power_systems(id, slug, name)),
+          character_eras(id, era_label, identity, function_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
+          character_story_notes(id, role_label, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
+          character_key_moments(id, title, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
+          character_quotes(id, quote_md, context_md, sort_order, is_spoiler),
+          character_relationships!character_relationships_character_id_fkey(id, relation_label, inverse_label, sort_order, is_spoiler, related:characters!character_relationships_related_character_id_fkey(id, slug, name, alias, portrait_url, accent_color, canon_status))`,
       )
       .eq("canon_status", "canon")
       .eq("slug", slug)
@@ -73,6 +78,54 @@ export type CharacterWithRelations = Tables<"characters"> & {
   character_stories: Array<{ role: string | null; stories: StoryRef | null }>;
   character_factions: Array<{ role: string | null; factions: { id: string; slug: string; name: string } | null }>;
   character_powers: Array<{ notes: string | null; power_systems: { id: string; slug: string; name: string } | null }>;
+  character_eras?: Array<{
+    id: string;
+    era_label: string;
+    identity: string;
+    function_md: string;
+    sort_order: number;
+    is_spoiler: boolean;
+    story: StoryRef | null;
+  }>;
+  character_story_notes?: Array<{
+    id: string;
+    role_label: string | null;
+    summary_md: string;
+    sort_order: number;
+    is_spoiler: boolean;
+    story: StoryRef | null;
+  }>;
+  character_key_moments?: Array<{
+    id: string;
+    title: string;
+    summary_md: string;
+    sort_order: number;
+    is_spoiler: boolean;
+    story: StoryRef | null;
+  }>;
+  character_quotes?: Array<{
+    id: string;
+    quote_md: string;
+    context_md: string | null;
+    sort_order: number;
+    is_spoiler: boolean;
+  }>;
+  character_relationships?: Array<{
+    id: string;
+    relation_label: string;
+    inverse_label: string | null;
+    sort_order: number;
+    is_spoiler: boolean;
+    related: {
+      id: string;
+      slug: string;
+      name: string;
+      alias: string | null;
+      portrait_url: string | null;
+      accent_color: string | null;
+      canon_status: string;
+    } | null;
+  }>;
 };
 
 function listQO<T extends string>(table: T) {
