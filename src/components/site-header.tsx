@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { signOut } from "@/lib/auth";
 import logo from "@/assets/logo-white.png";
 
-const nav = [
+const baseNav = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
   { to: "/portfolio", label: "Portfolio" },
@@ -11,12 +11,12 @@ const nav = [
   { to: "/skills", label: "Skills" },
   { to: "/resume", label: "Resume" },
   { to: "/contact", label: "Contact" },
-  { to: "/admin", label: "Admin" },
 ] as const;
 
 export function SiteHeader() {
   const auth = useAuth();
   const router = useRouter();
+  const nav = auth.allowed ? [...baseNav, { to: "/admin", label: "Admin" } as const] : baseNav;
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
