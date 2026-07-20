@@ -32,6 +32,8 @@ export const charactersQO = queryOptions({
           character_powers(notes, power_systems(id, slug, name))`,
       )
       .eq("canon_status", "canon")
+      .eq("status", "published")
+      .is("archived_at", null)
       .order("name");
     return must(data, error) as CharacterWithRelations[];
   },
@@ -159,5 +161,59 @@ export const spoilerNotesQO = queryOptions({
   queryFn: async () => {
     const { data, error } = await supabase.from("spoiler_notes").select("*").order("created_at", { ascending: false });
     return must(data, error);
+  },
+});
+
+/* --------------- Admin queries (all statuses, includes archived toggle) --------------- */
+
+export const adminCharactersQO = queryOptions({
+  queryKey: ["admin", "characters"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("characters")
+      .select(
+        `id, slug, name, alias, role, portrait_url, accent_color, canon_status, status, archived_at, updated_at,
+          primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title)`,
+      )
+      .order("updated_at", { ascending: false });
+    return must(data, error);
+  },
+});
+
+export type AdminCharacterRow = {
+  id: string;
+  slug: string;
+  name: string;
+  alias: string | null;
+  role: string | null;
+  portrait_url: string | null;
+  accent_color: string | null;
+  canon_status: string;
+  status: string;
+  archived_at: string | null;
+  updated_at: string;
+  primary_story: StoryRef | null;
+};
+
+export const adminCharacterQO = (id: string) => queryOptions({
+  queryKey: ["admin", "character", id],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("characters")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    return must(data, error);
+  },
+});
+
+export const adminStoriesLiteQO = queryOptions({
+  queryKey: ["admin", "stories", "lite"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("stories")
+      .select("id, slug, number, title")
+      .order("number");
+    return must(data, error) as StoryRef[];
   },
 });
