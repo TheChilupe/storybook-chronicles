@@ -150,13 +150,21 @@
   .prose-lore p { margin-bottom: 1rem; line-height: 1.7; }
   .prose-lore strong { color: var(--color-foreground); }
   .prose-lore h2 { font-size: 1.25rem; margin: 1rem 0 0.5rem; font-weight: 700; }
+  .prose-lore h3 { font-size: 1.05rem; margin: 1rem 0 0.375rem; font-weight: 600; color: var(--color-foreground); }
   .prose-lore ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+  .prose-lore ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1rem; }
+  .prose-lore li { margin-bottom: 0.25rem; line-height: 1.7; }
+  .prose-lore blockquote { border-left: 2px solid var(--color-border); padding-left: 1rem; margin: 1rem 0; color: var(--color-foreground); font-style: italic; }
   .prose-lore a { color: oklch(0.75 0.15 255); text-decoration: underline; }
 
   .spoiler-box {
-    border: 1px solid color-mix(in oklab, var(--spoiler) 60%, transparent);
-    background: color-mix(in oklab, var(--spoiler) 8%, transparent);
-    border-radius: 0.75rem;
-    padding: 1rem 1.25rem;
+    border: 1px solid color-mix(in oklab, var(--spoiler) 55%, transparent);
+    background: color-mix(in oklab, var(--spoiler) 6%, var(--color-card));
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
 }
