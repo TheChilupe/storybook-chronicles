@@ -27,6 +27,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StorybookChroniclesIndexRouteImport } from './routes/storybook-chronicles.index'
 import { Route as CharactersIndexRouteImport } from './routes/characters.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StorybookChroniclesTimelineRouteImport } from './routes/storybook-chronicles.timeline'
 import { Route as StorybookChroniclesDevelopmentProcessRouteImport } from './routes/storybook-chronicles.development-process'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
@@ -127,6 +128,11 @@ const CharactersIndexRoute = CharactersIndexRouteImport.update({
   path: '/characters/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const StorybookChroniclesTimelineRoute =
   StorybookChroniclesTimelineRouteImport.update({
     id: '/timeline',
@@ -176,7 +182,7 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/admin/': typeof AdminIndexRoute
   '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -204,7 +211,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -223,6 +229,7 @@ export interface FileRoutesByTo {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/admin': typeof AdminIndexRoute
   '/characters': typeof CharactersIndexRoute
   '/storybook-chronicles': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -232,7 +239,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
   '/login': typeof LoginRoute
@@ -252,6 +259,7 @@ export interface FileRoutesById {
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
   '/storybook-chronicles/timeline': typeof StorybookChroniclesTimelineRoute
+  '/admin/': typeof AdminIndexRoute
   '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -282,6 +290,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/admin/'
     | '/characters/'
     | '/storybook-chronicles/'
     | '/.lovable/oauth/consent'
@@ -290,7 +299,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/admin'
     | '/contact'
     | '/factions'
     | '/login'
@@ -309,6 +317,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/admin'
     | '/characters'
     | '/storybook-chronicles'
     | '/.lovable/oauth/consent'
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
     | '/storybook-chronicles/timeline'
+    | '/admin/'
     | '/characters/'
     | '/storybook-chronicles/'
     | '/.lovable/oauth/consent'
@@ -346,7 +356,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   FactionsRoute: typeof FactionsRoute
   LoginRoute: typeof LoginRoute
@@ -496,6 +506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CharactersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/storybook-chronicles/timeline': {
       id: '/storybook-chronicles/timeline'
       path: '/timeline'
@@ -555,6 +572,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface StoriesRouteChildren {
   StoriesSlugRoute: typeof StoriesSlugRoute
 }
@@ -585,7 +612,7 @@ const StorybookChroniclesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
   FactionsRoute: FactionsRoute,
   LoginRoute: LoginRoute,
