@@ -96,6 +96,38 @@ export function toCharacterModel(c: CharacterWithRelations): CharacterModel {
   const powers = (c.character_powers ?? [])
     .filter((r) => r.power_systems)
     .map((r) => ({ ...(r.power_systems as { id: string; slug: string; name: string }), notes: r.notes }));
+  const bySort = <T extends { sort_order: number }>(a: T, b: T) => a.sort_order - b.sort_order;
+  const progression: ProgressionEra[] = [...(c.character_eras ?? [])]
+    .sort(bySort)
+    .map((r) => ({ era: r.era_label, identity: r.identity, function: r.function_md }));
+  const storyProgression: StoryProgressionEntry[] = [...(c.character_story_notes ?? [])]
+    .filter((r) => r.story)
+    .sort((a, b) => {
+      const an = a.story?.number ?? Number.POSITIVE_INFINITY;
+      const bn = b.story?.number ?? Number.POSITIVE_INFINITY;
+      if (an !== bn) return an - bn;
+      return a.sort_order - b.sort_order;
+    })
+    .map((r) => ({ story: r.story as StoryRef, role: r.role_label, summary: r.summary_md }));
+  const relationshipCards: RelationshipCard[] = [...(c.character_relationships ?? [])]
+    .filter((r) => r.related && r.related.canon_status === "canon" && r.related.slug)
+    .sort(bySort)
+    .map((r) => {
+      const rel = r.related as NonNullable<typeof r.related>;
+      return {
+        characterSlug: rel.slug,
+        name: rel.alias || rel.name,
+        relation: r.relation_label,
+        portraitUrl: rel.portrait_url,
+        initials: initialsFor(rel.name, rel.alias, rel.slug),
+      };
+    });
+  const keyMoments: KeyMoment[] = [...(c.character_key_moments ?? [])]
+    .sort(bySort)
+    .map((r) => ({ title: r.title, story: r.story, order: r.sort_order, summary: r.summary_md }));
+  const quotes: CharacterQuote[] = [...(c.character_quotes ?? [])]
+    .sort(bySort)
+    .map((r) => ({ quote: r.quote_md, context: r.context_md }));
   return {
     id: c.id,
     slug: c.slug,
@@ -115,14 +147,11 @@ export function toCharacterModel(c: CharacterWithRelations): CharacterModel {
     identity: c.identity_md ?? null,
     storyRole: c.story_role_md ?? null,
     spoiler: c.spoiler_md ?? null,
-    // Placeholder architecture — populated once character_eras,
-    // character_relationships, character_story_notes, character_quotes,
-    // character_key_moments tables ship. Empty arrays keep sections hidden.
-    coreConflict: null,
-    progression: [],
-    storyProgression: [],
-    relationshipCards: [],
-    keyMoments: [],
-    quotes: [],
+    coreConflict: (c as { core_conflict_md?: string | null }).core_conflict_md ?? null,
+    progression,
+    storyProgression,
+    relationshipCards,
+    keyMoments,
+    quotes,
   };
 }

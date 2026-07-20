@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      character_eras: {
+        Row: {
+          character_id: string
+          created_at: string
+          era_label: string
+          function_md: string
+          id: string
+          identity: string
+          is_spoiler: boolean
+          sort_order: number
+          story_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          era_label: string
+          function_md?: string
+          id?: string
+          identity: string
+          is_spoiler?: boolean
+          sort_order?: number
+          story_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          era_label?: string
+          function_md?: string
+          id?: string
+          identity?: string
+          is_spoiler?: boolean
+          sort_order?: number
+          story_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_eras_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_eras_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       character_factions: {
         Row: {
           character_id: string
@@ -46,6 +100,57 @@ export type Database = {
             columns: ["faction_id"]
             isOneToOne: false
             referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_key_moments: {
+        Row: {
+          character_id: string
+          created_at: string
+          id: string
+          is_spoiler: boolean
+          sort_order: number
+          story_id: string | null
+          summary_md: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          id?: string
+          is_spoiler?: boolean
+          sort_order?: number
+          story_id?: string | null
+          summary_md?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          id?: string
+          is_spoiler?: boolean
+          sort_order?: number
+          story_id?: string | null
+          summary_md?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_key_moments_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_key_moments_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
             referencedColumns: ["id"]
           },
         ]
@@ -86,6 +191,98 @@ export type Database = {
           },
         ]
       }
+      character_quotes: {
+        Row: {
+          character_id: string
+          context_md: string | null
+          created_at: string
+          id: string
+          is_spoiler: boolean
+          quote_md: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          character_id: string
+          context_md?: string | null
+          created_at?: string
+          id?: string
+          is_spoiler?: boolean
+          quote_md: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          character_id?: string
+          context_md?: string | null
+          created_at?: string
+          id?: string
+          is_spoiler?: boolean
+          quote_md?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_quotes_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_relationships: {
+        Row: {
+          character_id: string
+          created_at: string
+          id: string
+          inverse_label: string | null
+          is_spoiler: boolean
+          related_character_id: string
+          relation_label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          id?: string
+          inverse_label?: string | null
+          is_spoiler?: boolean
+          related_character_id: string
+          relation_label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          id?: string
+          inverse_label?: string | null
+          is_spoiler?: boolean
+          related_character_id?: string
+          relation_label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_relationships_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_relationships_related_character_id_fkey"
+            columns: ["related_character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       character_stories: {
         Row: {
           character_id: string
@@ -115,6 +312,57 @@ export type Database = {
           },
           {
             foreignKeyName: "character_stories_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_story_notes: {
+        Row: {
+          character_id: string
+          created_at: string
+          id: string
+          is_spoiler: boolean
+          role_label: string | null
+          sort_order: number
+          story_id: string
+          summary_md: string
+          updated_at: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string
+          id?: string
+          is_spoiler?: boolean
+          role_label?: string | null
+          sort_order?: number
+          story_id: string
+          summary_md?: string
+          updated_at?: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string
+          id?: string
+          is_spoiler?: boolean
+          role_label?: string | null
+          sort_order?: number
+          story_id?: string
+          summary_md?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_story_notes_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_story_notes_story_id_fkey"
             columns: ["story_id"]
             isOneToOne: false
             referencedRelation: "stories"
@@ -161,6 +409,7 @@ export type Database = {
           alias: string | null
           canon_status: string
           canon_summary_md: string | null
+          core_conflict_md: string | null
           created_at: string
           eyebrow: string | null
           id: string
@@ -184,6 +433,7 @@ export type Database = {
           alias?: string | null
           canon_status?: string
           canon_summary_md?: string | null
+          core_conflict_md?: string | null
           created_at?: string
           eyebrow?: string | null
           id?: string
@@ -207,6 +457,7 @@ export type Database = {
           alias?: string | null
           canon_status?: string
           canon_summary_md?: string | null
+          core_conflict_md?: string | null
           created_at?: string
           eyebrow?: string | null
           id?: string
