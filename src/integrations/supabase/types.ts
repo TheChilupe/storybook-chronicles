@@ -407,6 +407,7 @@ export type Database = {
         Row: {
           accent_color: string | null
           alias: string | null
+          archived_at: string | null
           canon_status: string
           canon_summary_md: string | null
           core_conflict_md: string | null
@@ -423,14 +424,17 @@ export type Database = {
           role: string | null
           slug: string
           spoiler_md: string | null
+          status: string
           story_id: string | null
           story_role_md: string | null
           tagline: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           accent_color?: string | null
           alias?: string | null
+          archived_at?: string | null
           canon_status?: string
           canon_summary_md?: string | null
           core_conflict_md?: string | null
@@ -447,14 +451,17 @@ export type Database = {
           role?: string | null
           slug: string
           spoiler_md?: string | null
+          status?: string
           story_id?: string | null
           story_role_md?: string | null
           tagline?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           accent_color?: string | null
           alias?: string | null
+          archived_at?: string | null
           canon_status?: string
           canon_summary_md?: string | null
           core_conflict_md?: string | null
@@ -471,10 +478,12 @@ export type Database = {
           role?: string | null
           slug?: string
           spoiler_md?: string | null
+          status?: string
           story_id?: string | null
           story_role_md?: string | null
           tagline?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
