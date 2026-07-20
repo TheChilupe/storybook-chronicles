@@ -1,9 +1,72 @@
+import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import type { CharacterModel } from "@/lib/character-model";
 import { storyLabel } from "@/lib/character-model";
 import { Markdown } from "@/components/markdown";
 import { SpoilerSection } from "@/components/spoiler-section";
-import { useState } from "react";
+
+/* ---------------- utilities ---------------- */
+
+function accentOf(m: CharacterModel) {
+  return m.accent ?? "hsl(var(--primary))";
+}
+
+function accentMix(m: CharacterModel, pct: number) {
+  const c = accentOf(m);
+  return `color-mix(in oklab, ${c} ${pct}%, transparent)`;
+}
+
+/** Extract a leading blockquote-styled pull quote when identity_md starts with `> ...`. */
+function extractPullQuote(md: string | null | undefined): string | null {
+  if (!md) return null;
+  const line = md.split("\n").find((l) => l.trim().startsWith(">"));
+  if (!line) return null;
+  return line.replace(/^\s*>\s?/, "").trim() || null;
+}
+
+/* ---------------- primitives ---------------- */
+
+export function CharacterSection({
+  id,
+  title,
+  eyebrow,
+  accent,
+  children,
+  className = "",
+}: {
+  id?: string;
+  title: string;
+  eyebrow?: string;
+  accent?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      id={id}
+      className={`rounded-2xl border border-border bg-card p-6 sm:p-8 ${className}`}
+      aria-labelledby={id ? `${id}-title` : undefined}
+    >
+      {eyebrow && (
+        <p
+          className="mb-1 text-xs font-semibold uppercase tracking-[0.14em]"
+          style={{ color: accent ?? "var(--color-muted-foreground)" }}
+        >
+          {eyebrow}
+        </p>
+      )}
+      <h2
+        id={id ? `${id}-title` : undefined}
+        className="mb-4 text-xl font-semibold sm:text-2xl"
+      >
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/* ---------------- breadcrumb ---------------- */
 
 export function CharacterBreadcrumb({ name }: { name: string }) {
   return (
@@ -29,52 +92,95 @@ export function CharacterBreadcrumb({ name }: { name: string }) {
   );
 }
 
-function Portrait({ m, size = "lg" }: { m: CharacterModel; size?: "lg" | "md" }) {
+/* ---------------- portrait ---------------- */
+
+function Portrait({ m }: { m: CharacterModel }) {
   const [failed, setFailed] = useState(false);
-  const accent = m.accent ?? "hsl(var(--primary))";
-  const dims =
-    size === "lg"
-      ? "h-40 w-40 sm:h-48 sm:w-48 text-4xl"
-      : "h-24 w-24 text-2xl";
+  const accent = accentOf(m);
   const showImg = m.portraitUrl && !failed;
   return (
     <div
-      className={`flex ${dims} shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted`}
-      style={showImg ? undefined : { backgroundColor: accent }}
-      aria-hidden={showImg ? undefined : true}
+      className="relative shrink-0 self-center sm:self-start"
+      style={{
+        // subtle accent glow
+        filter: `drop-shadow(0 10px 30px ${accentMix(m, 22)})`,
+      }}
     >
-      {showImg ? (
-        <img
-          src={m.portraitUrl!}
-          alt={`${m.displayName}${m.heroName ? ` / ${m.heroName}` : ""} portrait`}
-          className="h-full w-full object-cover"
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        <span className="font-semibold text-white/95 drop-shadow-sm">
-          {m.initials}
-        </span>
-      )}
+      <div
+        className="flex h-56 w-44 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted sm:h-72 sm:w-60 md:h-80 md:w-[15rem]"
+        style={showImg ? undefined : { backgroundColor: accent }}
+        aria-hidden={showImg ? undefined : true}
+      >
+        {showImg ? (
+          <img
+            src={m.portraitUrl!}
+            alt={`${m.displayName}${m.heroName ? ` / ${m.heroName}` : ""} portrait`}
+            className="h-full w-full object-cover"
+            onError={() => setFailed(true)}
+          />
+        ) : (
+          <span className="text-5xl font-semibold text-white/95 drop-shadow-sm sm:text-6xl">
+            {m.initials}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
+/* ---------------- hero ---------------- */
+
+function Badge({
+  children,
+  accent,
+  tone = "outline",
+}: {
+  children: React.ReactNode;
+  accent: string;
+  tone?: "outline" | "solid";
+}) {
+  const style: React.CSSProperties =
+    tone === "solid"
+      ? { backgroundColor: accent, color: "var(--color-primary-foreground)" }
+      : {
+          borderColor: `color-mix(in oklab, ${accent} 55%, transparent)`,
+          color: accent,
+          backgroundColor: `color-mix(in oklab, ${accent} 8%, transparent)`,
+        };
+  return (
+    <span
+      className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium"
+      style={style}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function CharacterHero({ m }: { m: CharacterModel }) {
-  const accent = m.accent ?? "hsl(var(--primary))";
+  const accent = accentOf(m);
   return (
     <header
-      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
+      className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-8"
       style={{ borderTop: `4px solid ${accent}` }}
     >
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+      {/* accent glow wash */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-70"
+        style={{
+          background: `radial-gradient(60% 80% at 15% 0%, ${accentMix(m, 18)} 0%, transparent 60%)`,
+        }}
+      />
+      <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
         <Portrait m={m} />
         <div className="min-w-0 flex-1">
           {m.eyebrow && (
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
               {m.eyebrow}
             </p>
           )}
-          <h1 className="mt-1 text-3xl font-bold sm:text-4xl">
+          <h1 className="mt-1 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
             {m.displayName}
           </h1>
           {m.heroName && (
@@ -86,13 +192,28 @@ export function CharacterHero({ m }: { m: CharacterModel }) {
             </p>
           )}
           {m.tagline && (
-            <p className="mt-3 text-lg text-muted-foreground">{m.tagline}</p>
+            <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
+              {m.tagline}
+            </p>
           )}
+          <div className="mt-5 flex flex-wrap gap-2">
+            {m.role && <Badge accent={accent}>{m.role}</Badge>}
+            {m.primaryStory && (
+              <Badge accent={accent}>{storyLabel(m.primaryStory)}</Badge>
+            )}
+            {m.powers.slice(0, 3).map((p) => (
+              <Badge key={p.id} accent={accent}>
+                {p.name}
+              </Badge>
+            ))}
+          </div>
         </div>
       </div>
     </header>
   );
 }
+
+/* ---------------- quick facts ---------------- */
 
 type Fact = { label: string; value: React.ReactNode };
 
@@ -102,15 +223,6 @@ export function CharacterQuickFacts({ m }: { m: CharacterModel }) {
   if (m.role) facts.push({ label: "Narrative role", value: m.role });
   const primary = storyLabel(m.primaryStory);
   if (primary) facts.push({ label: "Primary story", value: primary });
-  const extras = m.stories
-    .filter((s) => s.story.id !== m.primaryStory?.id)
-    .map((s) => {
-      const label = storyLabel(s.story);
-      return s.role ? `${label} (${s.role})` : label;
-    })
-    .filter(Boolean);
-  if (extras.length)
-    facts.push({ label: "Also appears in", value: extras.join(", ") });
   if (m.factions.length)
     facts.push({
       label: m.factions.length === 1 ? "Faction" : "Factions",
@@ -128,14 +240,17 @@ export function CharacterQuickFacts({ m }: { m: CharacterModel }) {
       aria-label="Quick facts"
       className="rounded-2xl border border-border bg-card p-6"
     >
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         Quick facts
       </h2>
       <dl className="grid gap-3 text-sm">
         {facts.map((f) => (
-          <div key={f.label} className="grid grid-cols-[7rem_1fr] gap-3">
+          <div
+            key={f.label}
+            className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
+          >
             <dt className="text-muted-foreground">{f.label}</dt>
-            <dd className="text-foreground">{f.value}</dd>
+            <dd className="min-w-0 text-foreground">{f.value}</dd>
           </div>
         ))}
       </dl>
@@ -143,57 +258,275 @@ export function CharacterQuickFacts({ m }: { m: CharacterModel }) {
   );
 }
 
-export function CharacterLoreSection({
-  title,
-  body,
-}: {
-  title: string;
-  body: string | null | undefined;
-}) {
-  if (!body?.trim()) return null;
+/* ---------------- overview ---------------- */
+
+export function CharacterOverview({ m }: { m: CharacterModel }) {
+  if (!m.overview?.trim()) return null;
+  const accent = accentOf(m);
   return (
-    <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-      <h2 className="mb-3 text-xl font-semibold">{title}</h2>
-      <Markdown>{body}</Markdown>
-    </section>
+    <CharacterSection id="overview" title="Overview" accent={accent}>
+      {m.tagline && (
+        <blockquote
+          className="mb-5 border-l-2 pl-4 text-lg italic text-foreground/90"
+          style={{ borderColor: accent }}
+        >
+          {m.tagline}
+        </blockquote>
+      )}
+      <div className="max-w-[70ch]">
+        <Markdown>{m.overview}</Markdown>
+      </div>
+    </CharacterSection>
   );
 }
 
-export function CharacterRelations({ m }: { m: CharacterModel }) {
-  const hasStories = m.stories.length > 0;
+/* ---------------- identity ---------------- */
+
+export function CharacterIdentity({ m }: { m: CharacterModel }) {
+  if (!m.identity?.trim()) return null;
+  const accent = accentOf(m);
+  const pull = extractPullQuote(m.identity);
+  const body = pull
+    ? m.identity.split("\n").filter((l) => !l.trim().startsWith(">")).join("\n")
+    : m.identity;
+  return (
+    <CharacterSection id="identity" title="Character Identity" accent={accent}>
+      {pull && (
+        <blockquote
+          className="mb-5 border-l-2 pl-4 text-base italic text-foreground/90"
+          style={{ borderColor: accent }}
+        >
+          {pull}
+        </blockquote>
+      )}
+      <div className="max-w-[70ch]">
+        <Markdown>{body}</Markdown>
+      </div>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- powers ---------------- */
+
+export function CharacterPowerCard({
+  name,
+  notes,
+  accent,
+}: {
+  name: string;
+  notes: string | null;
+  accent: string;
+}) {
+  return (
+    <article
+      className="rounded-xl border border-border bg-background/40 p-4"
+      style={{ borderLeft: `3px solid ${accent}` }}
+    >
+      <h3 className="text-base font-semibold" style={{ color: accent }}>
+        {name}
+      </h3>
+      {notes?.trim() && (
+        <div className="mt-2 max-w-[65ch] text-sm text-foreground/90">
+          <Markdown>{notes}</Markdown>
+        </div>
+      )}
+    </article>
+  );
+}
+
+export function CharacterPowers({ m }: { m: CharacterModel }) {
+  if (!m.powers.length) return null;
+  const accent = accentOf(m);
+  return (
+    <CharacterSection
+      id="powers"
+      title="Powers and Abilities"
+      accent={accent}
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        {m.powers.map((p) => (
+          <CharacterPowerCard
+            key={p.id}
+            name={p.name}
+            notes={p.notes}
+            accent={accent}
+          />
+        ))}
+      </div>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- limitations (data-driven; hidden without data) ---------------- */
+
+export type Limitation = { title: string; body: string };
+
+export function CharacterLimitations({
+  items,
+}: {
+  items: Limitation[] | undefined | null;
+}) {
+  if (!items?.length) return null;
+  return (
+    <CharacterSection id="limitations" title="Limitations">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {items.map((l, i) => (
+          <article
+            key={i}
+            className="rounded-xl border p-4"
+            style={{
+              borderColor: "color-mix(in oklab, var(--color-destructive) 40%, transparent)",
+              background:
+                "color-mix(in oklab, var(--color-destructive) 6%, transparent)",
+            }}
+          >
+            <h3 className="text-sm font-semibold text-foreground">{l.title}</h3>
+            <p className="mt-1.5 text-sm text-foreground/85">{l.body}</p>
+          </article>
+        ))}
+      </div>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- story role ---------------- */
+
+export function CharacterStoryRoleSection({ m }: { m: CharacterModel }) {
+  if (!m.storyRole?.trim()) return null;
+  const accent = accentOf(m);
+  return (
+    <CharacterSection id="story-role" title="Story Role" accent={accent}>
+      <div className="max-w-[70ch]">
+        <Markdown>{m.storyRole}</Markdown>
+      </div>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- relationships (data-driven; hidden without data) ---------------- */
+
+export type Relationship = {
+  name: string;
+  relation: string;
+  description?: string | null;
+  portraitUrl?: string | null;
+  characterSlug?: string | null;
+};
+
+export function CharacterRelationships({
+  items,
+  accent,
+}: {
+  items: Relationship[] | undefined | null;
+  accent: string;
+}) {
+  if (!items?.length) return null;
+  return (
+    <CharacterSection id="relationships" title="Key Relationships">
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {items.map((r, i) => {
+          const inner = (
+            <>
+              <div
+                className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-muted"
+                style={r.portraitUrl ? undefined : { backgroundColor: accent }}
+                aria-hidden="true"
+              >
+                {r.portraitUrl ? (
+                  <img src={r.portraitUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-sm font-semibold text-white/95">
+                    {r.name.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{r.name}</p>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {r.relation}
+                </p>
+                {r.description && (
+                  <p className="mt-1 text-sm text-foreground/85">{r.description}</p>
+                )}
+              </div>
+            </>
+          );
+          return (
+            <li key={i}>
+              {r.characterSlug ? (
+                <Link
+                  to="/characters/$slug"
+                  params={{ slug: r.characterSlug }}
+                  className="flex items-start gap-3 rounded-xl border border-border bg-background/40 p-3 transition hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                >
+                  {inner}
+                </Link>
+              ) : (
+                <div className="flex items-start gap-3 rounded-xl border border-border bg-background/40 p-3">
+                  {inner}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- story appearances ---------------- */
+
+export function CharacterStoryAppearances({ m }: { m: CharacterModel }) {
+  if (!m.stories.length) return null;
+  const accent = accentOf(m);
+  return (
+    <CharacterSection id="story-appearances" title="Story Appearances">
+      <ol className="grid gap-3">
+        {m.stories.map((s) => (
+          <li
+            key={s.story.id}
+            className="rounded-xl border border-border bg-background/40 p-4"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <p className="text-sm font-semibold">
+                {s.story.number != null && (
+                  <span className="mr-2 text-muted-foreground">
+                    Story {s.story.number}
+                  </span>
+                )}
+                {s.story.title}
+              </p>
+              {s.role && (
+                <span
+                  className="text-xs font-medium uppercase tracking-wider"
+                  style={{ color: accent }}
+                >
+                  {s.role}
+                </span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- related lore ---------------- */
+
+export function CharacterRelatedLore({ m }: { m: CharacterModel }) {
   const hasFactions = m.factions.length > 0;
   const hasPowers = m.powers.length > 0;
-  if (!hasStories && !hasFactions && !hasPowers) return null;
+  if (!hasFactions && !hasPowers) return null;
   return (
-    <section
-      aria-label="Related lore"
-      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
-    >
-      <h2 className="mb-4 text-xl font-semibold">Related lore</h2>
-      <div className="grid gap-6 sm:grid-cols-3">
-        {hasStories && (
-          <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Story appearances
-            </h3>
-            <ul className="space-y-1 text-sm">
-              {m.stories.map((s) => (
-                <li key={s.story.id}>
-                  {storyLabel(s.story)}
-                  {s.role && (
-                    <span className="text-muted-foreground"> — {s.role}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+    <CharacterSection id="related-lore" title="Related Lore">
+      <div className="grid gap-6 sm:grid-cols-2">
         {hasFactions && (
           <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Factions
             </h3>
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1.5 text-sm">
               {m.factions.map((f) => (
                 <li key={f.id}>
                   {f.name}
@@ -207,25 +540,62 @@ export function CharacterRelations({ m }: { m: CharacterModel }) {
         )}
         {hasPowers && (
           <div>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Power systems
             </h3>
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1.5 text-sm">
               {m.powers.map((p) => (
-                <li key={p.id}>
-                  {p.name}
-                  {p.notes && (
-                    <span className="text-muted-foreground"> — {p.notes}</span>
-                  )}
-                </li>
+                <li key={p.id}>{p.name}</li>
               ))}
             </ul>
           </div>
         )}
       </div>
-    </section>
+    </CharacterSection>
   );
 }
+
+/* ---------------- gallery (hidden without data) ---------------- */
+
+export type GalleryImage = {
+  url: string;
+  alt: string;
+  category?: string | null;
+};
+
+export function CharacterGallery({
+  images,
+}: {
+  images: GalleryImage[] | undefined | null;
+}) {
+  if (!images?.length) return null;
+  return (
+    <CharacterSection id="gallery" title="Gallery">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {images.map((img, i) => (
+          <figure
+            key={i}
+            className="overflow-hidden rounded-xl border border-border bg-muted"
+          >
+            <img
+              src={img.url}
+              alt={img.alt}
+              className="aspect-[3/4] w-full object-cover"
+              loading="lazy"
+            />
+            {img.category && (
+              <figcaption className="p-2 text-xs text-muted-foreground">
+                {img.category}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    </CharacterSection>
+  );
+}
+
+/* ---------------- not found ---------------- */
 
 export function CharacterNotFound({ slug }: { slug?: string }) {
   return (
@@ -251,20 +621,40 @@ export function CharacterNotFound({ slug }: { slug?: string }) {
   );
 }
 
-export function CharacterProfile({ m, spoilerBody }: { m: CharacterModel; spoilerBody: string | null }) {
+/* ---------------- full profile ---------------- */
+
+export function CharacterProfile({
+  m,
+  spoilerBody,
+}: {
+  m: CharacterModel;
+  spoilerBody: string | null;
+}) {
+  // future: relationships/limitations/gallery when schema supports them
+  const relationships = useMemo<Relationship[]>(() => [], []);
+  const limitations = useMemo<Limitation[]>(() => [], []);
+  const gallery = useMemo<GalleryImage[]>(() => [], []);
+  const accent = accentOf(m);
+
   return (
     <article>
       <CharacterBreadcrumb name={m.heroName || m.displayName} />
       <CharacterHero m={m} />
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-6 min-w-0">
-          <CharacterLoreSection title="Overview" body={m.overview} />
-          <CharacterLoreSection title="Character Identity" body={m.identity} />
-          <CharacterLoreSection title="Story Role" body={m.storyRole} />
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
+        <div className="min-w-0 space-y-6">
+          <CharacterOverview m={m} />
+          <CharacterIdentity m={m} />
+          <CharacterPowers m={m} />
+          <CharacterLimitations items={limitations} />
+          <CharacterStoryRoleSection m={m} />
+          <CharacterRelationships items={relationships} accent={accent} />
+          <CharacterStoryAppearances m={m} />
+          <CharacterRelatedLore m={m} />
+          <CharacterGallery images={gallery} />
           {spoilerBody && (
             <SpoilerSection scope={`char-${m.slug}`} body={spoilerBody} />
           )}
-          <CharacterRelations m={m} />
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
           <CharacterQuickFacts m={m} />
