@@ -1,6 +1,13 @@
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
-import type { CharacterModel } from "@/lib/character-model";
+import type {
+  CharacterModel,
+  ProgressionEra,
+  StoryProgressionEntry,
+  RelationshipCard,
+  KeyMoment,
+  CharacterQuote,
+} from "@/lib/character-model";
 import { storyLabel } from "@/lib/character-model";
 import { Markdown } from "@/components/markdown";
 import { SpoilerSection } from "@/components/spoiler-section";
