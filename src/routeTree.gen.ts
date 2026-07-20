@@ -35,6 +35,7 @@ import { Route as CharactersSlugRouteImport } from './routes/characters.$slug'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AdminCharactersIndexRouteImport } from './routes/admin.characters.index'
+import { Route as AdminCharactersIdRouteImport } from './routes/admin.characters.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
@@ -173,6 +174,11 @@ const AdminCharactersIndexRoute = AdminCharactersIndexRouteImport.update({
   path: '/characters/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCharactersIdRoute = AdminCharactersIdRouteImport.update({
+  id: '/characters/$id',
+  path: '/characters/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/': typeof AdminCharactersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/storybook-chronicles': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters': typeof AdminCharactersIndexRoute
 }
 export interface FileRoutesById {
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/': typeof AdminCharactersIndexRoute
 }
 export interface FileRouteTypes {
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/storybook-chronicles/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/characters/$id'
     | '/admin/characters/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | '/storybook-chronicles'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/characters/$id'
     | '/admin/characters'
   id:
     | '__root__'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/storybook-chronicles/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin/characters/$id'
     | '/admin/characters/'
   fileRoutesById: FileRoutesById
 }
@@ -574,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCharactersIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/characters/$id': {
+      id: '/admin/characters/$id'
+      path: '/characters/$id'
+      fullPath: '/admin/characters/$id'
+      preLoaderRoute: typeof AdminCharactersIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -593,11 +612,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCharactersIdRoute: typeof AdminCharactersIdRoute
   AdminCharactersIndexRoute: typeof AdminCharactersIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminCharactersIdRoute: AdminCharactersIdRoute,
   AdminCharactersIndexRoute: AdminCharactersIndexRoute,
 }
 
