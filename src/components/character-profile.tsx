@@ -642,7 +642,7 @@ export function CharacterProfile({
       <CharacterHero m={m} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
-        <div className="min-w-0 space-y-6">
+        <div className="min-w-0 space-y-6 lg:order-2">
           <CharacterOverview m={m} />
           <CharacterIdentity m={m} />
           <CharacterPowers m={m} />
@@ -656,7 +656,7 @@ export function CharacterProfile({
             <SpoilerSection scope={`char-${m.slug}`} body={spoilerBody} />
           )}
         </div>
-        <div className="lg:sticky lg:top-6 lg:self-start">
+        <div className="lg:order-1 lg:sticky lg:top-6 lg:self-start">
           <CharacterQuickFacts m={m} />
         </div>
       </div>
