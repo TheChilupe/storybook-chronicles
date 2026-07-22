@@ -147,7 +147,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (auth.loading) return;
-    if (!auth.email && !isPublic) navigate({ to: "/login" });
+    if (!auth.email && !isPublic) navigate({ to: "/login", search: { next: undefined } });
   }, [auth.loading, auth.email, isPublic, navigate]);
 
   if (auth.loading) {

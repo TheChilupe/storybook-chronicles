@@ -40,7 +40,7 @@ export function SiteHeader() {
         <div className="ml-auto text-xs text-muted-foreground">
           {auth.email && (
             <button
-              onClick={async () => { await signOut(); router.navigate({ to: "/login" }); }}
+              onClick={async () => { await signOut(); router.navigate({ to: "/login", search: { next: undefined } }); }}
               className="rounded-md border border-border px-2 py-1 hover:bg-secondary"
             >
               Sign out
