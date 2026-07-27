@@ -174,11 +174,11 @@ function PortraitUploader({ m }: { m: CharacterModel }) {
   }
 
   return (
-    <div className="w-full max-w-[15rem]">
+    <div className="w-full max-w-[24rem]">
       <label
         className={`inline-flex w-full cursor-pointer items-center justify-center rounded-md border border-border bg-background/60 px-3 py-2 text-xs font-medium transition hover:border-primary ${busy ? "pointer-events-none opacity-60" : ""}`}
       >
-        {busy ? "Uploading…" : "Upload portrait"}
+        {busy ? "Uploading…" : "Upload Portrait"}
         <input
           type="file"
           accept="image/*"
