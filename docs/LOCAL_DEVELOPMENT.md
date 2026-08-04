@@ -38,29 +38,64 @@ exists, the scripts prefer it automatically.
 **4. You never create Docker containers yourself.**
 
 Supabase creates and manages its own containers — database, API, Studio, storage and
-so on. You should never run `docker run`, `docker compose up`, or make containers by
-hand for this project. If a container is missing, the fix is `npm run local:up`, not
-Docker.
+so on. **Never run `docker run`, `docker compose up`, or create containers by hand for
+this project**, and never start, stop or delete individual Supabase containers through
+the Docker Desktop UI. The CLI owns the whole set and expects to manage them together;
+hand-made containers will not be wired to the right network, ports or volumes.
+
+If a container is missing or misbehaving, the fix is `npm run local:down` followed by
+`npm run local:up` — not Docker.
 
 ---
 
-## The three commands
+## The commands
+
+The three you need day to day:
 
 ```powershell
-npm run local:up
-npm run local:status
-npm run local:down
+npm run local:up       # start (minimal stack — the normal workflow here)
+npm run local:status   # read-only report
+npm run local:down     # stop, keeping local data
 ```
 
-### `npm run local:up` — start everything
+And one optional extra:
+
+```powershell
+npm run local:up:full  # every service including Studio; may fail on this machine
+```
+
+### `npm run local:up` — start the stack (minimal, the normal workflow)
 
 Checks you are in Windows PowerShell and at the repository root, confirms `node`,
 `npm`, `npx` and `docker` are available, starts Docker Desktop if it is closed, waits
 until the Docker engine actually answers, and only then starts the local Supabase
 stack. It finishes by printing your local URLs and keys.
 
+**This starts the minimal stack, and that is deliberate.** On this computer the full
+stack does not fit in the memory available to Docker: the host has about 7.88 GB of
+RAM and the WSL2 backend gives Docker roughly 3.76 GB, which the complete set of
+services exceeds. Starting everything results in containers failing their health
+checks, and `supabase start` then rolls the whole stack back.
+
+Minimal mode starts **Postgres, Auth, REST, Realtime, Storage and Kong** — everything
+needed to apply migrations and to verify database content. It skips Studio, analytics
+(Logflare + Vector), edge functions, imgproxy, postgres-meta, mailpit and Supavisor.
+
+Migrations apply exactly as they do in the full stack, so nothing about schema or
+data verification is compromised. **The Studio web UI on port 54323 is not available
+in this mode** — use `psql` or the app itself to inspect data.
+
 The first run is slow — it downloads several Docker images. Later runs take well under
 a minute.
+
+### `npm run local:up:full` — start every service (optional)
+
+Starts the complete stack, Studio included. **This is optional and may fail on this
+computer** with `container is not ready: unhealthy`, for the memory reasons above. It
+is kept for use on a machine with more RAM, or after closing memory-heavy applications.
+
+If it fails, nothing is left running and no data is lost — fall back to
+`npm run local:up`.
 
 ### `npm run local:status` — look, don't touch
 
@@ -96,7 +131,7 @@ These are two completely separate databases and it matters that you keep them st
 | Where it runs | Docker on your PC | Supabase's servers |
 | Started by | `npm run local:up` | always on |
 | URL | `http://127.0.0.1:54321` | the hosted project URL |
-| Studio | `http://127.0.0.1:54323` | app.supabase.com |
+| Studio | `http://127.0.0.1:54323` — **not started in minimal mode** | app.supabase.com |
 | Contains | test data you can break freely | the real project data |
 | Safe to experiment on | yes | no |
 
@@ -155,6 +190,32 @@ Then run `npm run local:up` again.
 > to fix this. Those delete every Docker volume on the machine, including your local
 > Supabase database. This guide will never tell you to purge Docker data, and the
 > scripts will never do it automatically.
+
+### "container is not ready: unhealthy"
+
+The images downloaded fine; the containers just could not report healthy inside the
+CLI's timeout. This is nearly always memory pressure, not a network problem.
+
+Check what Docker actually has:
+
+```powershell
+docker info --format 'CPUs: {{.NCPU}} | Mem: {{.MemTotal}}'
+```
+
+On a 7.88 GB machine the WSL2 default gives Docker roughly 3.76 GB, which the full
+stack can exceed.
+
+If you hit this after running `npm run local:up:full`, use the default minimal stack
+instead — it is the supported workflow on this computer:
+
+```powershell
+npm run local:up
+```
+
+If minimal mode itself fails, close memory-heavy apps (browsers especially), then
+`npm run local:down` followed by `npm run local:up`. Note that a failed
+`supabase start` rolls back every container it created, so a failed attempt leaves
+nothing running and costs you no data.
 
 ### Docker Desktop won't start
 

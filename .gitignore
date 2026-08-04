@@ -38,3 +38,4 @@ dist-ssr
 
 # Supabase local cache
 supabase/.temp/
+supabase/.branches/

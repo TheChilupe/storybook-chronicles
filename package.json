@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "local:up": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./scripts/local-up.ps1\"",
+    "local:up": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./scripts/local-up.ps1\" -Minimal",
+    "local:up:full": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./scripts/local-up.ps1\"",
     "local:status": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./scripts/local-status.ps1\"",
     "local:down": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./scripts/local-down.ps1\""
   },

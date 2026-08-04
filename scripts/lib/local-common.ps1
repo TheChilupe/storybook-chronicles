@@ -393,6 +393,13 @@ function Show-DockerNotReadyGuidance {
 # machines and between runs.
 $script:SupabaseCliVersion = '2.111.0'
 
+# Services skipped by `local:up -Minimal`, for machines where the full stack does
+# not fit in Docker's memory allocation. Studio and the analytics pair
+# (logflare + vector) are the memory-hungry optional pieces; postgres-meta only
+# serves Studio; imgproxy, mailpit and supavisor are not needed for local schema
+# work. What remains is Postgres, Auth, REST, Realtime, Storage and Kong.
+$script:MinimalExcludedServices = 'studio,logflare,vector,imgproxy,edge-runtime,postgres-meta,mailpit,supavisor'
+
 function Get-SupabaseInvocation {
   <#
     Resolves the Supabase CLI without depending on a global install.
@@ -439,12 +446,25 @@ function Invoke-Supabase {
   Write-Info "supabase $($Arguments -join ' ')"
 
   $collected = New-Object System.Collections.Generic.List[string]
-  & $Invocation.Exe @argList 2>&1 | ForEach-Object {
-    $line = [string]$_
-    Write-Host "    $line"
-    $collected.Add($line)
+
+  # Windows PowerShell raises a *terminating* NativeCommandError when a native
+  # command writes to stderr while $ErrorActionPreference is 'Stop' and stderr is
+  # merged with 2>&1. The Supabase CLI writes ordinary diagnostics to stderr, so
+  # leaving the preference at 'Stop' here would abort the script before any of the
+  # failure guidance below could run. Relax it for this call only.
+  $previousEap = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    & $Invocation.Exe @argList 2>&1 | ForEach-Object {
+      $line = [string]$_
+      Write-Host "    $line"
+      $collected.Add($line)
+    }
+    $code = $LASTEXITCODE
   }
-  $code = $LASTEXITCODE
+  finally {
+    $ErrorActionPreference = $previousEap
+  }
 
   return [pscustomobject]@{
     ExitCode = $code
@@ -506,7 +526,35 @@ function Show-SupabaseFailureGuidance {
     return
   }
 
-  if ($Output -match '(?i)(no such image|failed to (pull|resolve)|manifest unknown|network is unreachable|timeout|tls handshake)') {
+  # Check health-check timeouts BEFORE the download branch. A first start often
+  # exceeds the CLI's health-check window even though every image pulled fine,
+  # and reporting that as a network problem sends the owner down the wrong path.
+  if ($Output -match '(?i)(healthcheck|health check|container is not ready|unhealthy)') {
+    Write-Guidance -Title "Containers did not report healthy in time" -Lines @(
+      "The images downloaded correctly. This is a startup timing or memory",
+      "problem, not a network problem.",
+      "",
+      "  1. If you started the FULL stack with npm run local:up:full, use the",
+      "     default reduced stack instead - it is the supported workflow here:",
+      "       npm run local:up",
+      "  2. If the reduced stack itself failed, free memory by closing browsers",
+      "     and other heavy apps, then:",
+      "       npm run local:down",
+      "       npm run local:up",
+      "  3. Check what Docker actually has to work with:",
+      "       docker info --format 'CPUs: {{.NCPU}} | Mem: {{.MemTotal}}'",
+      "     Raise the limits under Docker Desktop -> Settings -> Resources only",
+      "     if the host genuinely has memory to spare.",
+      "",
+      "A failed start rolls back every container it created, so it leaves nothing",
+      "running and does not affect your local database data."
+    )
+    return
+  }
+
+  # 'i/o timeout' is deliberately specific - a bare 'timeout' also matches
+  # health-check errors, which are not download failures.
+  if ($Output -match '(?i)(no such image|failed to (pull|resolve)|manifest unknown|network is unreachable|i/o timeout|tls handshake)') {
     Write-Guidance -Title "Docker could not download a Supabase image" -Lines @(
       "This is usually a network or Docker Hub hiccup.",
       "",

@@ -12,7 +12,11 @@
 [CmdletBinding()]
 param(
   # How long to wait for the Docker engine to answer before giving up.
-  [int]$DockerTimeoutSeconds = 180
+  [int]$DockerTimeoutSeconds = 180,
+
+  # Start a reduced stack that omits the memory-hungry optional services.
+  # Use this when the full stack cannot fit in Docker's memory allocation.
+  [switch]$Minimal
 )
 
 $ErrorActionPreference = 'Stop'
@@ -90,9 +94,18 @@ else {
 Write-Step "Starting the local Supabase stack"
 Write-Info "This can take several minutes the first time while images download."
 
+$startArgs = @('start')
+if ($Minimal) {
+  $startArgs += @('-x', $script:MinimalExcludedServices)
+  Write-Warn "Minimal mode: starting a reduced stack."
+  Write-Info "Skipping: $($script:MinimalExcludedServices)"
+  Write-Info "Postgres, Auth, REST, Realtime and Storage still start normally."
+  Write-Info "The Studio web UI is NOT available in this mode."
+}
+
 Push-Location $repoRoot
 try {
-  $startResult = Invoke-Supabase -Invocation $supabase -Arguments @('start')
+  $startResult = Invoke-Supabase -Invocation $supabase -Arguments $startArgs
 
   if ($startResult.ExitCode -ne 0) {
     # `already running` is a benign outcome; treat it as success and fall through
@@ -130,12 +143,21 @@ finally {
 }
 
 # --- 7. Summary ---------------------------------------------------------------
-Write-Summary -Success $true -Title "Local Supabase is running" -Lines @(
-  "The URLs and keys above belong to your LOCAL stack only.",
+$summaryLines = @("The URLs and keys above belong to your LOCAL stack only.")
+if ($Minimal) {
+  $summaryLines += @(
+    "",
+    "Reduced stack - Studio, analytics and edge functions were not started.",
+    "Postgres, Auth, REST, Realtime and Storage are available."
+  )
+}
+$summaryLines += @(
   "",
   "Check it later with:  npm run local:status",
   "Shut it down with:    npm run local:down   (your local data is kept)",
   "",
   "Start the app with:   npm run dev"
 )
+
+Write-Summary -Success $true -Title "Local Supabase is running" -Lines $summaryLines
 exit 0
