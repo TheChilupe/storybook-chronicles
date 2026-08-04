@@ -14,6 +14,15 @@ function save() {
   listeners.forEach((l) => l(state));
 }
 
+/**
+ * The reveal scope for one character profile. Both the reveal toggle and the
+ * profile sections read this, so they can never disagree about which key holds
+ * a given character's reveal state.
+ */
+export function characterSpoilerScope(slug: string) {
+  return `char-${slug}`;
+}
+
 export function useSpoilers(scope?: string) {
   const [s, setS] = useState(state);
   useEffect(() => {

@@ -204,23 +204,107 @@ function Test-StaticAssertion {
   $script:Assertions.Add([pscustomobject]@{ Label = $label.Trim(); Passed = $passed; Evidence = 'static' })
 }
 
-# Fields a visitor can see without unlocking spoilers. spoiler_md is deliberately
-# excluded - it is the one place secret-identity information is allowed to live.
-$PublicFields = "concat_ws(' ', name, alias, role, eyebrow, tagline, canon_summary_md, identity_md, story_role_md, core_conflict_md)"
+<#
+  SCOPE AND LIMITS OF CONTENT VERIFICATION
 
-# Every stored profile field, public and spoiler alike. A retired title must not
-# survive anywhere, not merely in the publicly rendered fields.
-$AllProfileFields = "concat_ws(' ', name, alias, role, eyebrow, tagline, canon_summary_md, identity_md, story_role_md, spoiler_md, core_conflict_md)"
+  The content assertions below match known canonical phrases and the terminology
+  actually stored by the canonical migration. They are deliberately NOT an
+  attempt to recognise every possible paraphrase: prose that conveys the same
+  meaning in different words ("lost his life" for death, "A. Story" for Adam)
+  will not be detected. Patterns are word-bounded and case-insensitive so that
+  they neither miss ordinary inflections nor fire on unrelated words - for
+  example 'Prince of Crime' must not match 'Prince of Crimea'.
 
-# The exact retired title for The Giver, per project canon. This is the
-# authoritative check for assertion 10.
-$RetiredGiverTitle = 'prince\s+of\s+crime'
+  No speculative vocabulary is added here. Every term used below was confirmed
+  present in the canonical migration or in the live rows it produced.
+#>
+
+# Character text is split into what a visitor can see (public) and what is gated
+# behind the spoiler toggle. Tables carrying an is_spoiler column are split on it;
+# tables without one (character_stories, character_factions, character_powers)
+# have no spoiler protection and are therefore treated as public content.
+#
+# This split mirrors the application, it does not merely assume it. The policy is
+# enforced in one place, src/lib/character-model.ts (isPubliclyVisible), which
+# drops is_spoiler = true rows from the default profile model for character_eras,
+# character_story_notes, character_key_moments, character_quotes and
+# character_relationships, and leaves the three spoiler-less tables untouched.
+# Those rows return, each tagged isSpoiler, only when the visitor has used the
+# reveal toggle - which is exactly the gate these assertions treat as spoiler
+# protection. src/lib/character-model.test.ts covers both reveal states. If that
+# policy ever changes, this split must be updated to match.
+function New-ProfileTextCte {
+  <#
+    Emits three CTEs for one character:
+      <Prefix>_target - the character row, so callers can prove it exists
+      <Prefix>_pub    - every publicly rendered text fragment
+      <Prefix>_spoil  - every spoiler-gated text fragment
+  #>
+  param(
+    [Parameter(Mandatory = $true)][string]$Slug,
+    [Parameter(Mandatory = $true)][string]$Prefix
+  )
+
+  return @"
+$($Prefix)_target as (
+  select id from public.characters where slug = '$Slug'
+),
+$($Prefix)_pub as (
+  select concat_ws(' ', c.name, c.alias, c.role, c.eyebrow, c.tagline,
+                   c.canon_summary_md, c.identity_md, c.story_role_md, c.core_conflict_md) as txt
+    from public.characters c join $($Prefix)_target t on t.id = c.id
+  union all select concat_ws(' ', x.era_label, x.identity, x.function_md)
+    from public.character_eras x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = false
+  union all select concat_ws(' ', x.title, x.summary_md)
+    from public.character_key_moments x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = false
+  union all select concat_ws(' ', x.role_label, x.summary_md)
+    from public.character_story_notes x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = false
+  union all select concat_ws(' ', x.quote_md, x.context_md)
+    from public.character_quotes x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = false
+  union all select concat_ws(' ', x.relation_label, x.inverse_label)
+    from public.character_relationships x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = false
+  union all select x.role
+    from public.character_stories x join $($Prefix)_target t on t.id = x.character_id
+  union all select x.role
+    from public.character_factions x join $($Prefix)_target t on t.id = x.character_id
+  union all select x.notes
+    from public.character_powers x join $($Prefix)_target t on t.id = x.character_id
+),
+$($Prefix)_spoil as (
+  select c.spoiler_md as txt
+    from public.characters c join $($Prefix)_target t on t.id = c.id
+  union all select concat_ws(' ', x.era_label, x.identity, x.function_md)
+    from public.character_eras x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = true
+  union all select concat_ws(' ', x.title, x.summary_md)
+    from public.character_key_moments x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = true
+  union all select concat_ws(' ', x.role_label, x.summary_md)
+    from public.character_story_notes x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = true
+  union all select concat_ws(' ', x.quote_md, x.context_md)
+    from public.character_quotes x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = true
+  union all select concat_ws(' ', x.relation_label, x.inverse_label)
+    from public.character_relationships x join $($Prefix)_target t on t.id = x.character_id where x.is_spoiler = true
+)
+"@
+}
+
+# The exact retired title for The Giver, per project canon. Word-bounded so
+# 'Prince of Crimea' does not match.
+$RetiredGiverTitle = '\mprince\s+of\s+crime\M'
+
+# Wording that would link the two identities, in each direction.
+$GiverIdentityPattern = '(\mgiver\M|\mboundless\s+king\M)'
+$AdamIdentityPattern = '\madam\M'
+
+# Ezra's protected material, using only terminology confirmed present in the
+# canonical migration and the live spoiler rows (kidnap*, experiment*, crystal,
+# Purple War, death, dies). Stems are left open so inflections are caught.
+$EzraProtectedPattern = '(\mkidnap|\mexperiment|\mcrystal|\mpurple\s+war\M|\mdeath\M|\mdies\M)'
 
 # SEPARATE legacy-placeholder wording, carried by the pre-canonical Giver rows the
 # Room, Jennifer and Fez imports created. These are NOT the retired canonical
 # title; they are checked independently as assertion 21 so the two concerns are
 # never conflated.
-$LegacyPlaceholderPhrases = 'mysterious power-granting|power-granting controller|power-granting experimenter'
+$LegacyPlaceholderPhrases = '(mysterious power-granting|power-granting controller|power-granting experimenter)'
 
 # The canonical migration whose result this script verifies.
 $MigrationFile = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260729090000_import_canonical_adam_story_and_ezra_zone_profiles.sql'
@@ -254,7 +338,10 @@ from public.characters where slug in ('adam-story','giver','ezra-zone');
 # Assertion 3 concerns preservation of the Giver record. The original UUID is
 # generated dynamically by the earlier Room import, so no literal expected UUID
 # exists anywhere to compare against, and none is claimed here. Preservation is
-# instead established by two pieces of live evidence plus one static one.
+# established by 3a (live: the row predates this import), 3b (static: the import
+# updates that row in place) and assertion 13 (live: the earlier Room, Jennifer
+# and Fez relationships still resolve to it). Relationship continuity is asserted
+# once, at 13, rather than duplicated here.
 Test-Assertion '3a' "The Giver record predates the Adam/Ezra canonical import" @"
 select (g.created_at < least(a.created_at, e.created_at))::text
 from (select created_at from public.characters where slug='giver') g,
@@ -262,22 +349,23 @@ from (select created_at from public.characters where slug='giver') g,
      (select created_at from public.characters where slug='ezra-zone') e;
 "@
 
-Test-Assertion '3b' "Existing Room, Jennifer and Fez relationships still target the current Giver record" @"
-select (count(distinct src.slug)=3)::text
-from public.character_relationships r
-join public.characters src on src.id = r.character_id
-where src.slug in ('room','jennifer','fez')
-  and r.related_character_id = (select id from public.characters where slug='giver');
-"@
-
-Test-StaticAssertion '3c' "Canonical migration selects and updates the existing Giver in place, never deleting and recreating it" {
+Test-StaticAssertion '3b' "Canonical migration selects and updates the existing Giver in place, never deleting and recreating it" {
   # The existing row is located and captured into giver_id ...
   $selectsExisting = $MigrationText -match 'INTO\s+candidate_count,\s*giver_id'
-  # ... then updated in place by primary key ...
-  $updatesInPlace = $MigrationText -match '(?s)UPDATE\s+public\.characters.*?WHERE\s+id\s*=\s*giver_id\s*;'
-  # ... and no character row is ever deleted by this migration.
+
+  # ... and updated by primary key within a SINGLE statement. [^;]*? forbids a
+  # semicolon between the UPDATE and its WHERE, so an UPDATE of some other row
+  # followed by an unrelated later mention of giver_id cannot satisfy this.
+  $updatesInPlace = $MigrationText -match 'UPDATE\s+public\.characters\b[^;]*?\bWHERE\s+id\s*=\s*giver_id\s*;'
+
+  # No character row is deleted anywhere in this migration, so the Giver cannot
+  # have been dropped and recreated.
   $neverDeletes = -not ($MigrationText -match 'DELETE\s+FROM\s+public\.characters')
-  return ($selectsExisting -and $updatesInPlace -and $neverDeletes)
+
+  # The fallback INSERT is reachable only when no Giver candidate was found.
+  $guardedInsert = $MigrationText -match "ELSIF\s+candidate_count\s*=\s*0\s+THEN\s+INSERT\s+INTO\s+public\.characters\s*\([^)]*\)\s*VALUES\s*\(\s*'giver'"
+
+  return ($selectsExisting -and $updatesInPlace -and $neverDeletes -and $guardedInsert)
 }
 
 Test-Assertion 4 "All three are canon, published, not archived, and linked to Story 1" @"
@@ -299,29 +387,42 @@ select (coalesce(trim(alias),'') = '')::text
 from public.characters where slug='adam-story';
 "@
 
+# Anchored on the character row: if adam-story is missing the query returns no
+# row at all, which fails. A zero count can never stand in for a missing person.
 Test-Assertion 6 "Adam has no structured power links, faction memberships, or relationships" @"
 select (
-  (select count(*) from public.character_powers p
-     where p.character_id = (select id from public.characters where slug='adam-story')) = 0
-  and (select count(*) from public.character_factions f
-     where f.character_id = (select id from public.characters where slug='adam-story')) = 0
+  (select count(*) from public.character_powers p where p.character_id = c.id) = 0
+  and (select count(*) from public.character_factions f where f.character_id = c.id) = 0
   and (select count(*) from public.character_relationships r
-     where r.character_id = (select id from public.characters where slug='adam-story')
-        or r.related_character_id = (select id from public.characters where slug='adam-story')) = 0
+       where r.character_id = c.id or r.related_character_id = c.id) = 0
+)::text
+from public.characters c where c.slug = 'adam-story';
+"@
+
+Test-Assertion 7 "No public content anywhere on Adam identifies him as The Giver" @"
+with $(New-ProfileTextCte -Slug 'adam-story' -Prefix 'a')
+select (
+  exists (select 1 from a_target)
+  and not exists (select 1 from a_pub where txt ~* '$GiverIdentityPattern')
 )::text;
 "@
 
-Test-Assertion 7 "Adam's public structured fields do not identify him as The Giver" @"
-select ($PublicFields !~* '(giver|boundless king)')::text
-from public.characters where slug='adam-story';
-"@
-
-Test-Assertion 8 "Adam/Giver identity information exists only in spoiler-controlled text" @"
+Test-Assertion 8 "Adam/Giver identity is present in spoiler-controlled content and absent from all public content" @"
+with $(New-ProfileTextCte -Slug 'adam-story' -Prefix 'a'),
+     $(New-ProfileTextCte -Slug 'giver' -Prefix 'g')
 select (
-  coalesce(spoiler_md,'') ~* 'giver'
-  and $PublicFields !~* '(giver|boundless king)'
-)::text
-from public.characters where slug='adam-story';
+  exists (select 1 from a_target)
+  and exists (select 1 from g_target)
+  -- The identity must actually be recorded somewhere spoiler-gated, so this
+  -- cannot pass merely because the information is missing everywhere.
+  and (
+    exists (select 1 from a_spoil where txt ~* '$GiverIdentityPattern')
+    or exists (select 1 from g_spoil where txt ~* '$AdamIdentityPattern')
+  )
+  -- ... and must not leak into public content in either direction.
+  and not exists (select 1 from a_pub where txt ~* '$GiverIdentityPattern')
+  and not exists (select 1 from g_pub where txt ~* '$AdamIdentityPattern')
+)::text;
 "@
 
 Write-Host ""
@@ -332,9 +433,13 @@ select (trim(coalesce(substring(identity_md from '\*\*Title:\*\*[ \t]*([^\n\r]*)
 from public.characters where slug='giver';
 "@
 
-Test-Assertion 10 "The retired title 'Prince of Crime' appears nowhere in the Giver's stored profile (public or spoiler)" @"
-select ($AllProfileFields !~* '$RetiredGiverTitle')::text
-from public.characters where slug='giver';
+Test-Assertion 10 "The retired title 'Prince of Crime' appears nowhere in any stored Giver content, public or spoiler" @"
+with $(New-ProfileTextCte -Slug 'giver' -Prefix 'g')
+select (
+  exists (select 1 from g_target)
+  and not exists (select 1 from g_pub   where txt ~* '$RetiredGiverTitle')
+  and not exists (select 1 from g_spoil where txt ~* '$RetiredGiverTitle')
+)::text;
 "@
 
 Test-Assertion 11 "The Giver has structured links to Erasure and Immortality, and only those" @"
@@ -365,9 +470,12 @@ where src.slug in ('room','jennifer','fez')
   and r.related_character_id = (select id from public.characters where slug='giver');
 "@
 
-Test-Assertion 14 "The Giver's public fields do not identify him as Adam Story" @"
-select ($PublicFields !~* 'adam')::text
-from public.characters where slug='giver';
+Test-Assertion 14 "No public content anywhere on The Giver identifies him as Adam Story" @"
+with $(New-ProfileTextCte -Slug 'giver' -Prefix 'g')
+select (
+  exists (select 1 from g_target)
+  and not exists (select 1 from g_pub where txt ~* '$AdamIdentityPattern')
+)::text;
 "@
 
 Write-Host ""
@@ -387,37 +495,41 @@ from public.characters e where e.slug='ezra-zone';
 "@
 
 Test-Assertion 16 "Ezra has no structured character-power links" @"
-select (count(*)=0)::text
-from public.character_powers
-where character_id = (select id from public.characters where slug='ezra-zone');
+select ((select count(*) from public.character_powers p where p.character_id = c.id) = 0)::text
+from public.characters c where c.slug = 'ezra-zone';
 "@
 
 Test-Assertion 17 "Ezra is not given a structured Apex membership" @"
 select (
   (select count(*) from public.character_factions cf
      join public.factions f on f.id = cf.faction_id
-     where cf.character_id = (select id from public.characters where slug='ezra-zone')
-       and f.slug = 'apex-dynamics') = 0
-  and (select count(*) from public.character_factions cf
-     where cf.character_id = (select id from public.characters where slug='ezra-zone')) = 0
-)::text;
+     where cf.character_id = c.id and f.slug = 'apex-dynamics') = 0
+  and (select count(*) from public.character_factions cf where cf.character_id = c.id) = 0
+)::text
+from public.characters c where c.slug = 'ezra-zone';
 "@
 
-Test-Assertion 18 "Ezra's kidnapping, experimentation, crystal powers, Purple War role and death are not in public fields" @"
-select ($PublicFields !~* '(kidnap|abduct|experiment|crystal|purple war|\mdeath\M|\mdies\M|\mdied\M|\mkilled\M)')::text
-from public.characters where slug='ezra-zone';
+Test-Assertion 18 "Ezra's kidnapping, experimentation, crystal powers, Purple War role and death are absent from all public content" @"
+with $(New-ProfileTextCte -Slug 'ezra-zone' -Prefix 'e')
+select (
+  exists (select 1 from e_target)
+  and not exists (select 1 from e_pub where txt ~* '$EzraProtectedPattern')
+)::text;
 "@
 
 Write-Host ""
 Write-Host "  IDENTITY SAFETY" -ForegroundColor White
 
+# Cross-joined on both character rows, so a missing Adam or Giver yields no row
+# and fails rather than trivially reporting "no relationship found".
 Test-Assertion 19 "There is no structured Adam-to-Giver or Giver-to-Adam relationship" @"
-select (count(*)=0)::text
-from public.character_relationships r
-where (r.character_id = (select id from public.characters where slug='adam-story')
-       and r.related_character_id = (select id from public.characters where slug='giver'))
-   or (r.character_id = (select id from public.characters where slug='giver')
-       and r.related_character_id = (select id from public.characters where slug='adam-story'));
+select (
+  (select count(*) from public.character_relationships r
+     where (r.character_id = a.id and r.related_character_id = g.id)
+        or (r.character_id = g.id and r.related_character_id = a.id)) = 0
+)::text
+from public.characters a, public.characters g
+where a.slug = 'adam-story' and g.slug = 'giver';
 "@
 
 Test-Assertion 20 "No duplicate Adam, Giver, Ezra, Order, Erasure or Immortality records exist" @"
@@ -441,12 +553,15 @@ select (
 Write-Host ""
 Write-Host "  LEGACY PLACEHOLDER CHECK (separate from the retired canonical title)" -ForegroundColor White
 
-Test-Assertion 21 "No pre-canonical placeholder wording survives in the Giver's stored profile" @"
+Test-Assertion 21 "No pre-canonical placeholder wording survives in any stored Giver content" @"
+with $(New-ProfileTextCte -Slug 'giver' -Prefix 'g')
 select (
-  name <> 'Unknown'
-  and $AllProfileFields !~* '($LegacyPlaceholderPhrases)'
-)::text
-from public.characters where slug='giver';
+  exists (select 1 from g_target)
+  and (select count(*) from public.characters c
+         where c.slug = 'giver' and c.name = 'Unknown') = 0
+  and not exists (select 1 from g_pub   where txt ~* '$LegacyPlaceholderPhrases')
+  and not exists (select 1 from g_spoil where txt ~* '$LegacyPlaceholderPhrases')
+)::text;
 "@
 
 # --- Summary ------------------------------------------------------------------

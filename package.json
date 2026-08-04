@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "test": "node --test \"src/**/*.test.ts\"",
     "lint": "eslint .",
     "format": "prettier --write .",
     "local:up": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./scripts/local-up.ps1\" -Minimal",

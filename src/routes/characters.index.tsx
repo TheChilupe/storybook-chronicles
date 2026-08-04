@@ -26,7 +26,9 @@ function CharactersIndex() {
   const { data: characters = [] } = useQuery(charactersQO);
 
   const items = useMemo(
-    () => characters.map(toCharacterModel),
+    // Wrapped rather than passed by reference: Array#map would hand the element
+    // index to the options parameter. The index listing is always un-revealed.
+    () => characters.map((c) => toCharacterModel(c)),
     [characters],
   );
 

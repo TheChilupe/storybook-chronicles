@@ -2,6 +2,7 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { characterQO } from "@/lib/queries";
 import { toCharacterModel } from "@/lib/character-model";
+import { useSpoilers, characterSpoilerScope } from "@/lib/spoilers";
 import { SiteHeader } from "@/components/site-header";
 import {
   CharacterProfile,
@@ -104,8 +105,11 @@ function PageShell({ children }: { children: React.ReactNode }) {
 function CharacterDetailPage() {
   const { slug } = Route.useParams();
   const { data: row } = useSuspenseQuery(characterQO(slug));
+  // Same scope the SpoilerSection toggle writes to, so revealing spoilers in
+  // that section also brings the spoiler-flagged rows into the sections above it.
+  const { revealed } = useSpoilers(characterSpoilerScope(slug));
   if (!row) throw notFound();
-  const m = toCharacterModel(row);
+  const m = toCharacterModel(row, { revealed });
   return (
     <PageShell>
       <CharacterProfile m={m} spoilerBody={m.spoiler} />

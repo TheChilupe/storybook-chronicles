@@ -11,6 +11,7 @@ import type {
 import { storyLabel } from "@/lib/character-model";
 import { Markdown } from "@/components/markdown";
 import { SpoilerSection } from "@/components/spoiler-section";
+import { characterSpoilerScope } from "@/lib/spoilers";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,6 +32,36 @@ function extractPullQuote(md: string | null | undefined): string | null {
   const line = md.split("\n").find((l) => l.trim().startsWith(">"));
   if (!line) return null;
   return line.replace(/^\s*>\s?/, "").trim() || null;
+}
+
+/**
+ * Marks an item that only appears because the visitor revealed spoilers. Items
+ * carrying `isSpoiler: false` render nothing, so the default profile is
+ * unchanged and no reader is warned about content that is not a spoiler.
+ */
+function SpoilerTag({ on }: { on: boolean }) {
+  if (!on) return null;
+  return (
+    <span
+      className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]"
+      style={{
+        borderColor: "color-mix(in oklab, var(--spoiler) 55%, transparent)",
+        color: "var(--spoiler)",
+        backgroundColor: "color-mix(in oklab, var(--spoiler) 10%, transparent)",
+      }}
+    >
+      Spoiler
+    </span>
+  );
+}
+
+/** Border/background treatment applied to a revealed spoiler item. */
+function spoilerItemStyle(on: boolean): React.CSSProperties {
+  if (!on) return {};
+  return {
+    borderColor: "color-mix(in oklab, var(--spoiler) 45%, var(--color-border))",
+    background: "color-mix(in oklab, var(--spoiler) 5%, transparent)",
+  };
 }
 
 /* ---------------- primitives ---------------- */
@@ -602,14 +633,17 @@ export function CharacterProgression({
           <li
             key={`${e.era}-${i}`}
             className="relative rounded-xl border border-border bg-background/40 p-4"
-            style={{ borderTop: `3px solid ${accent}` }}
+            style={{ ...spoilerItemStyle(e.isSpoiler), borderTop: `3px solid ${accent}` }}
           >
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-              style={{ color: accent }}
-            >
-              {e.era}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                style={{ color: accent }}
+              >
+                {e.era}
+              </p>
+              <SpoilerTag on={e.isSpoiler} />
+            </div>
             <p className="mt-1.5 text-base font-semibold text-foreground">
               {e.identity}
             </p>
@@ -645,11 +679,13 @@ export function CharacterStoryProgression({
   return (
     <CharacterSection id="story-progression" title="Story Progression" accent={accent}>
       <div className="grid gap-3">
-        {sorted.map((s) => (
+        {/* Index in the key: one story can carry both a public and a revealed
+            spoiler note, so story id alone is not unique. */}
+        {sorted.map((s, i) => (
           <article
-            key={s.story.id}
+            key={`${s.story.id}-${i}`}
             className="rounded-xl border border-border bg-background/40 p-4"
-            style={{ borderLeft: `3px solid ${accent}` }}
+            style={{ ...spoilerItemStyle(s.isSpoiler), borderLeft: `3px solid ${accent}` }}
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="text-sm font-semibold">
@@ -660,14 +696,17 @@ export function CharacterStoryProgression({
                 )}
                 {s.story.title}
               </p>
-              {s.role && (
-                <span
-                  className="text-xs font-medium uppercase tracking-wider"
-                  style={{ color: accent }}
-                >
-                  {s.role}
-                </span>
-              )}
+              <span className="flex items-center gap-2">
+                {s.role && (
+                  <span
+                    className="text-xs font-medium uppercase tracking-wider"
+                    style={{ color: accent }}
+                  >
+                    {s.role}
+                  </span>
+                )}
+                <SpoilerTag on={s.isSpoiler} />
+              </span>
             </div>
             {s.summary?.trim() && (
               <div className="mt-2 max-w-[65ch] text-sm text-foreground/90">
@@ -696,11 +735,12 @@ export function CharacterRelationshipCards({
   return (
     <CharacterSection id="relationships" title="Relationships">
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => (
-          <li key={c.characterSlug}>
+        {cards.map((c, i) => (
+          <li key={`${c.characterSlug}-${i}`}>
             <Link
               to="/characters/$slug"
               params={{ slug: c.characterSlug }}
+              style={spoilerItemStyle(c.isSpoiler)}
               className="group flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3 transition duration-150 ease-out hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             >
               <div
@@ -726,6 +766,11 @@ export function CharacterRelationshipCards({
                 <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">
                   {c.relation}
                 </p>
+                {c.isSpoiler && (
+                  <span className="mt-1 inline-block">
+                    <SpoilerTag on />
+                  </span>
+                )}
               </div>
             </Link>
           </li>
@@ -760,17 +805,21 @@ export function CharacterKeyMoments({
           <li
             key={`${k.title}-${i}`}
             className="rounded-xl border border-border bg-background/40 p-4"
+            style={spoilerItemStyle(k.isSpoiler)}
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h3 className="text-sm font-semibold text-foreground">{k.title}</h3>
-              {k.story && (
-                <span
-                  className="text-xs font-medium uppercase tracking-wider"
-                  style={{ color: accent }}
-                >
-                  {storyLabel(k.story)}
-                </span>
-              )}
+              <span className="flex items-center gap-2">
+                {k.story && (
+                  <span
+                    className="text-xs font-medium uppercase tracking-wider"
+                    style={{ color: accent }}
+                  >
+                    {storyLabel(k.story)}
+                  </span>
+                )}
+                <SpoilerTag on={k.isSpoiler} />
+              </span>
             </div>
             {k.summary?.trim() && (
               <div className="mt-2 max-w-[65ch] text-sm text-foreground/90">
@@ -801,8 +850,13 @@ export function CharacterQuotes({
           <li
             key={i}
             className="rounded-xl border border-border bg-background/40 p-5"
-            style={{ borderLeft: `3px solid ${accent}` }}
+            style={{ ...spoilerItemStyle(q.isSpoiler), borderLeft: `3px solid ${accent}` }}
           >
+            {q.isSpoiler && (
+              <div className="mb-2">
+                <SpoilerTag on />
+              </div>
+            )}
             <blockquote
               className="text-base italic leading-relaxed text-foreground/95"
               style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
@@ -1017,9 +1071,11 @@ export function CharacterProfile({
           <div className="lg:hidden space-y-6">
             <CharacterRelatedLore m={m} />
           </div>
-          {spoilerBody && (
-            <SpoilerSection scope={`char-${m.slug}`} body={spoilerBody} />
-          )}
+          <SpoilerSection
+            scope={characterSpoilerScope(m.slug)}
+            body={spoilerBody ?? ""}
+            hasTaggedContent={m.hasSpoilerRows}
+          />
           <CharacterGallery images={gallery} />
         </main>
         <aside className="hidden lg:block">

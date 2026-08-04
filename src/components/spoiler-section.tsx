@@ -1,9 +1,25 @@
 import { useSpoilers } from "@/lib/spoilers";
 import { Markdown } from "./markdown";
 
-export function SpoilerSection({ scope, title = "Spoilers", body }: { scope: string; title?: string; body: string }) {
+export function SpoilerSection({
+  scope,
+  title = "Spoilers",
+  body,
+  /**
+   * True when the surrounding page has spoiler-flagged entries that this toggle
+   * also controls. It keeps the toggle available for a character whose only
+   * spoiler content is those entries and who has no spoiler body of their own.
+   */
+  hasTaggedContent = false,
+}: {
+  scope: string;
+  title?: string;
+  body: string;
+  hasTaggedContent?: boolean;
+}) {
   const { revealed, toggle } = useSpoilers(scope);
-  if (!body?.trim()) return null;
+  const hasBody = Boolean(body?.trim());
+  if (!hasBody && !hasTaggedContent) return null;
   const regionId = `spoiler-${scope}`;
   return (
     <section className="spoiler-box mt-2" aria-labelledby={`${regionId}-title`}>
@@ -26,9 +42,16 @@ export function SpoilerSection({ scope, title = "Spoilers", body }: { scope: str
       <div id={regionId} role="region" aria-live="polite">
         {revealed ? (
           <>
-            <div className="text-foreground/95">
-              <Markdown>{body}</Markdown>
-            </div>
+            {hasBody && (
+              <div className="text-foreground/95">
+                <Markdown>{body}</Markdown>
+              </div>
+            )}
+            {hasTaggedContent && (
+              <p className={`text-sm text-muted-foreground ${hasBody ? "mt-4" : ""}`}>
+                Spoiler entries are now shown in the sections above, each marked “Spoiler”.
+              </p>
+            )}
             <div className="mt-4 flex justify-end">
               <button
                 onClick={toggle}
@@ -42,7 +65,9 @@ export function SpoilerSection({ scope, title = "Spoilers", body }: { scope: str
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Warning: this section contains story spoilers. Hidden until you reveal.
+            {hasTaggedContent && !hasBody
+              ? "Warning: this character has story spoilers held back from the sections above. Hidden until you reveal."
+              : "Warning: this section contains story spoilers. Hidden until you reveal."}
           </p>
         )}
       </div>
