@@ -124,7 +124,11 @@ try {
     Write-Ok "supabase start completed"
   }
 
-  # --- 6. Status report -------------------------------------------------------
+  # --- 6. Local owner ---------------------------------------------------------
+  Write-Step "Ensuring the local development owner"
+  & (Join-Path $PSScriptRoot 'ensure-local-owner.ps1') -RepoRoot $repoRoot
+
+  # --- 7. Status report -------------------------------------------------------
   Write-Step "Reading local Supabase status"
   $statusResult = Invoke-Supabase -Invocation $supabase -Arguments @('status')
 
@@ -142,7 +146,7 @@ finally {
   Pop-Location
 }
 
-# --- 7. Summary ---------------------------------------------------------------
+# --- 8. Summary ---------------------------------------------------------------
 $summaryLines = @("The URLs and keys above belong to your LOCAL stack only.")
 if ($Minimal) {
   $summaryLines += @(

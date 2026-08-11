@@ -120,6 +120,18 @@ Once the stack is up, run the app itself the usual way:
 npm run dev
 ```
 
+### Local owner login
+
+`npm run local:up` idempotently provisions the existing allowlisted owner in
+local Supabase Auth. The email and local-only password live in ignored
+`.env.local` as `LOCAL_OWNER_EMAIL` and `LOCAL_OWNER_PASSWORD`; they are never
+committed or printed by the startup script. Use those values on the normal
+website login screen. This local account is independent of the hosted account.
+
+The provisioner refuses to run against a non-loopback Supabase URL. It does not
+disable RLS: authenticated access still passes through the existing
+`public.is_owner()` policy.
+
 ---
 
 ## Local Supabase vs. remote Supabase

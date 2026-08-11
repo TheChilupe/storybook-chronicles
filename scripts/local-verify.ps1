@@ -1,12 +1,13 @@
 <#
-  Read-only verification of the canonical Adam Story / The Giver / Ezra Zone
-  import against the LOCAL Supabase database.
+  Read-only verification of the canonical character imports through Racer
+  against the LOCAL Supabase database.
 
   Run it through npm from Windows PowerShell:
       npm run local:verify
 
   Verifies the results of:
       supabase/migrations/20260729090000_import_canonical_adam_story_and_ezra_zone_profiles.sql
+      supabase/migrations/20260810120000_import_canonical_caleb_cross_profile.sql
 
   Safety properties:
     - Every query runs with default_transaction_read_only=on, enforced by the
@@ -314,6 +315,13 @@ if (-not (Test-Path -LiteralPath $MigrationFile)) {
   exit 1
 }
 $MigrationText = Get-Content -LiteralPath $MigrationFile -Raw
+$CalebMigrationFile = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260810120000_import_canonical_caleb_cross_profile.sql'
+if (-not (Test-Path -LiteralPath $CalebMigrationFile)) {
+  Write-Fail "Canonical migration not found: $CalebMigrationFile"
+  Write-Summary -Success $false -Title "Cannot perform static verification"
+  exit 1
+}
+$CalebMigrationText = Get-Content -LiteralPath $CalebMigrationFile -Raw
 
 Write-Step "Verifying the Adam Story / The Giver / Ezra Zone import"
 Write-Info "Evidence column:"
@@ -564,6 +572,219 @@ select (
 )::text;
 "@
 
+Write-Host ""
+Write-Host "  CALEB CROSS" -ForegroundColor White
+
+Test-Assertion 22 "Exactly one Caleb Cross exists with the canonical identity and publication state" @"
+select (
+  count(*) = 1
+  and min(name) = 'Caleb Cross'
+  and min(alias) = 'Six Second Judgment'
+  and min(role) = 'Antagonist'
+  and min(canon_status) = 'canon'
+  and min(status) = 'published'
+  and bool_and(archived_at is null)
+)::text
+from public.characters
+where slug = 'caleb-cross'
+   or lower(trim(name)) = 'caleb cross'
+   or lower(trim(coalesce(alias, ''))) = 'six second judgment';
+"@
+
+Test-Assertion 23 "Caleb is linked only to Story 1" @"
+select (
+  c.story_id = s.id
+  and c.primary_story_id = s.id
+  and (select count(*) from public.character_stories cs where cs.character_id = c.id) = 1
+  and exists (
+    select 1 from public.character_stories cs
+    where cs.character_id = c.id and cs.story_id = s.id
+  )
+)::text
+from public.characters c
+cross join public.stories s
+where c.slug = 'caleb-cross' and s.slug = 'rush' and s.number = 1;
+"@
+
+Test-Assertion 24 "Caleb has exactly one Judgment Shot power link with the six-shot limitation" @"
+select (
+  (select count(*) from public.character_powers cp where cp.character_id = c.id) = 1
+  and exists (
+    select 1
+    from public.character_powers cp
+    join public.power_systems ps on ps.id = cp.power_system_id
+    where cp.character_id = c.id
+      and ps.slug = 'judgment-shot'
+      and cp.notes ~* 'six charged rounds'
+      and cp.notes ~* 'gun breaks or becomes unusable'
+  )
+)::text
+from public.characters c where c.slug = 'caleb-cross';
+"@
+
+Test-Assertion 25 "Caleb has only the public Target / opponent relationship to the existing Rush" @"
+select (
+  (select count(*) from public.character_relationships r where r.character_id = c.id) = 1
+  and exists (
+    select 1
+    from public.character_relationships r
+    join public.characters target on target.id = r.related_character_id
+    where r.character_id = c.id
+      and target.slug = 'rush'
+      and r.relation_label = 'Target / opponent'
+      and r.is_spoiler = false
+  )
+)::text
+from public.characters c where c.slug = 'caleb-cross';
+"@
+
+Test-Assertion 26 "Unresolved Caleb sections and media remain empty" @"
+select (
+  c.core_conflict_md is null
+  and c.spoiler_md is null
+  and c.portrait_url is null
+  and (select count(*) from public.character_eras x where x.character_id = c.id) = 0
+  and (select count(*) from public.character_story_notes x where x.character_id = c.id) = 0
+  and (select count(*) from public.character_key_moments x where x.character_id = c.id) = 0
+  and (select count(*) from public.character_quotes x where x.character_id = c.id) = 0
+  and (select count(*) from public.character_factions x where x.character_id = c.id) = 0
+)::text
+from public.characters c where c.slug = 'caleb-cross';
+"@
+
+Test-Assertion 27 "No unapproved later Batch 01 character has been introduced" @"
+select (count(*) = 0)::text
+from public.characters
+where slug in ('jacob-ladderman-reeves', 'jacob-reeves',
+               'detective-naomi-carter', 'naomi-carter',
+               'ren-hayashi', 'sideline');
+"@
+
+Test-StaticAssertion 28 "Caleb's migration is scoped to Caleb, Judgment Shot, Story 1, and Rush" {
+  $doesNotNameLaterBatchProfiles = $CalebMigrationText -notmatch '(?i)\bRacer\b|\bJacob\b|\bNaomi\b|\bRen Hayashi\b|\bSideline\b'
+  $doesNotUseRemoteCommands = $CalebMigrationText -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
+  return ($doesNotNameLaterBatchProfiles -and $doesNotUseRemoteCommands)
+}
+
+Write-Host ""
+Write-Host "  LOCAL OWNER ACCESS" -ForegroundColor White
+
+Test-Assertion 29 "The confirmed allowlisted local development owner exists exactly once" @"
+select (
+  count(*) = 1
+  and bool_and(email_confirmed_at is not null)
+  and bool_and(coalesce((raw_user_meta_data->>'local_development_owner')::boolean, false))
+)::text
+from auth.users
+where lower(email) = 'thechilupe@gmail.com';
+"@
+
+Test-Assertion 30 "Character reads retain owner-only RLS with authenticated table access" @"
+select (
+  c.relrowsecurity
+  and has_table_privilege('authenticated', c.oid, 'select')
+  and exists (
+    select 1 from pg_policies p
+    where p.schemaname = 'public'
+      and p.tablename = 'characters'
+      and 'authenticated' = any(p.roles)
+      and p.qual = 'is_owner()'
+  )
+)::text
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relname = 'characters';
+"@
+
+Write-Host ""
+Write-Host "  RACER" -ForegroundColor White
+
+Test-Assertion 31 "Exactly one published canon Racer exists with no invented real name" @"
+select (
+  count(*) = 1
+  and min(name) = 'Racer'
+  and coalesce(min(alias), '') = ''
+  and min(role) = 'Supporting Character'
+  and min(canon_status) = 'canon'
+  and min(status) = 'published'
+  and bool_and(archived_at is null)
+)::text
+from public.characters
+where slug = 'racer' or lower(trim(name)) = 'racer';
+"@
+
+Test-Assertion 32 "Racer is linked only to Story 1" @"
+select (
+  c.story_id = s.id
+  and c.primary_story_id = s.id
+  and (select count(*) from public.character_stories cs where cs.character_id = c.id) = 1
+  and exists (select 1 from public.character_stories cs where cs.character_id = c.id and cs.story_id = s.id)
+)::text
+from public.characters c cross join public.stories s
+where c.slug = 'racer' and s.slug = 'rush' and s.number = 1;
+"@
+
+Test-Assertion 33 "Racer has only Acceleration Manipulation and it is not generic super-speed" @"
+select (
+  (select count(*) from public.character_powers cp where cp.character_id = c.id) = 1
+  and exists (
+    select 1 from public.character_powers cp
+    join public.power_systems ps on ps.id = cp.power_system_id
+    where cp.character_id = c.id
+      and ps.slug = 'acceleration-manipulation'
+      and ps.summary_md ~* 'rate at which an object accelerates'
+      and ps.summary_md ~* 'not simply maximum-speed enhancement'
+  )
+)::text
+from public.characters c where c.slug = 'racer';
+"@
+
+Test-Assertion 34 "Racer has only the public Rush ally/friend relationship" @"
+select (
+  (select count(*) from public.character_relationships r where r.character_id = c.id) = 1
+  and exists (
+    select 1 from public.character_relationships r
+    join public.characters target on target.id = r.related_character_id
+    where r.character_id = c.id and target.slug = 'rush'
+      and r.relation_label = 'Ally / friend / founding crew connection'
+      and r.is_spoiler = false
+  )
+)::text
+from public.characters c where c.slug = 'racer';
+"@
+
+Test-Assertion 35 "Racer's Season 2/3 progression and girlfriend remain spoiler-controlled" @"
+with $(New-ProfileTextCte -Slug 'racer' -Prefix 'r')
+select (
+  exists (select 1 from r_target)
+  and not exists (select 1 from r_pub where txt ~* '(purple war|space agency|space program|girlfriend|speed to save people|move humanity forward)')
+  and exists (select 1 from r_spoil where txt ~* 'purple war')
+  and exists (select 1 from r_spoil where txt ~* 'girlfriend')
+  and exists (select 1 from r_spoil where txt ~* 'space program')
+)::text;
+"@
+
+Test-Assertion 36 "Racer uses the permanent project portrait path, not a signed URL" @"
+select (
+  portrait_url = '/images/characters/racer-concept.png'
+  and portrait_url !~* '(amazonaws|x-amz-|notion)'
+)::text
+from public.characters where slug = 'racer';
+"@
+
+Test-Assertion 37 "No later Batch 01 character has been introduced" @"
+select (count(*) = 0)::text
+from public.characters
+where slug in ('jacob-ladderman-reeves', 'jacob-reeves',
+               'detective-naomi-carter', 'naomi-carter',
+               'ren-hayashi', 'sideline');
+"@
+
+Test-StaticAssertion 38 "Racer's permanent concept-art file exists in the project" {
+  $portrait = Join-Path (Join-Path (Join-Path $repoRoot 'public') 'images\characters') 'racer-concept.png'
+  return ((Test-Path -LiteralPath $portrait) -and ((Get-Item -LiteralPath $portrait).Length -gt 0))
+}
+
 # --- Summary ------------------------------------------------------------------
 # The @() guards below stop PowerShell collapsing a single-item filter result to
 # a scalar, which would leave .Count empty in the summary line. $Assertions is a
@@ -579,7 +800,7 @@ Write-Host ("-" * 64) -ForegroundColor DarkGray
 Write-Host ("  EVIDENCE  {0} from the live local database, {1} from static migration inspection" -f $dbCount, $staticCount) -ForegroundColor Gray
 if ($failed -eq 0) {
   Write-Host ("  RESULT   {0} of {1} assertions passed, {2} failed" -f $passed, $total, $failed) -ForegroundColor Green
-  Write-Host "           The canonical Adam / Giver / Ezra import verified cleanly." -ForegroundColor Gray
+  Write-Host "           Canonical character imports through Racer verified cleanly." -ForegroundColor Gray
   Write-Host "           Nothing was modified - every query was read-only." -ForegroundColor Gray
   Write-Host ("-" * 64) -ForegroundColor DarkGray
   Write-Host ""
