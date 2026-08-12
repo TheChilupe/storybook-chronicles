@@ -1,5 +1,5 @@
 <#
-  Read-only verification of the canonical character imports through Racer
+  Read-only verification of the canonical character imports through Jacob
   against the LOCAL Supabase database.
 
   Run it through npm from Windows PowerShell:
@@ -652,11 +652,10 @@ select (
 from public.characters c where c.slug = 'caleb-cross';
 "@
 
-Test-Assertion 27 "No unapproved later Batch 01 character has been introduced" @"
+Test-Assertion 27 "No unapproved Batch 01 character after Jacob has been introduced" @"
 select (count(*) = 0)::text
 from public.characters
-where slug in ('jacob-ladderman-reeves', 'jacob-reeves',
-               'detective-naomi-carter', 'naomi-carter',
+where slug in ('detective-naomi-carter', 'naomi-carter',
                'ren-hayashi', 'sideline');
 "@
 
@@ -772,16 +771,145 @@ select (
 from public.characters where slug = 'racer';
 "@
 
-Test-Assertion 37 "No later Batch 01 character has been introduced" @"
+Test-Assertion 37 "No later Batch 01 character after Jacob has been introduced" @"
 select (count(*) = 0)::text
 from public.characters
-where slug in ('jacob-ladderman-reeves', 'jacob-reeves',
-               'detective-naomi-carter', 'naomi-carter',
+where slug in ('detective-naomi-carter', 'naomi-carter',
                'ren-hayashi', 'sideline');
 "@
 
 Test-StaticAssertion 38 "Racer's permanent concept-art file exists in the project" {
   $portrait = Join-Path (Join-Path (Join-Path $repoRoot 'public') 'images\characters') 'racer-concept.png'
+  return ((Test-Path -LiteralPath $portrait) -and ((Get-Item -LiteralPath $portrait).Length -gt 0))
+}
+
+Write-Host ""
+Write-Host "  JACOB REEVES / LADDERMAN" -ForegroundColor White
+
+Test-Assertion 39 "Exactly one published canon Jacob Reeves exists as Ladderman" @"
+select (
+  count(*) = 1
+  and min(name) = 'Jacob Reeves'
+  and min(alias) = 'Ladderman'
+  and min(role) = 'Supporting Character'
+  and min(canon_status) = 'canon'
+  and min(status) = 'published'
+  and bool_and(archived_at is null)
+)::text
+from public.characters
+where slug in ('jacob-reeves', 'jacob-ladderman-reeves')
+   or lower(trim(name)) in ('jacob reeves', 'officer jacob reeves',
+                           'officer jacob "ladderman" reeves')
+   or lower(trim(coalesce(alias, ''))) = 'ladderman';
+"@
+
+Test-Assertion 40 "Jacob is linked only to Story 1" @"
+select (
+  c.story_id = s.id
+  and c.primary_story_id = s.id
+  and (select count(*) from public.character_stories cs where cs.character_id = c.id) = 1
+  and exists (
+    select 1 from public.character_stories cs
+    where cs.character_id = c.id and cs.story_id = s.id
+  )
+)::text
+from public.characters c
+join public.stories s on s.slug = 'rush' and s.number = 1
+where c.slug = 'jacob-reeves';
+"@
+
+Test-Assertion 41 "Jacob has only Ladder Generation with the skin-overuse limitation" @"
+select (
+  (select count(*) from public.character_powers cp where cp.character_id = c.id) = 1
+  and exists (
+    select 1
+    from public.character_powers cp
+    join public.power_systems p on p.id = cp.power_system_id
+    where cp.character_id = c.id
+      and p.slug = 'ladder-generation'
+      and p.name = 'Ladder Generation'
+      and concat_ws(' ', p.summary_md, cp.notes) ~* 'wood'
+      and concat_ws(' ', p.summary_md, cp.notes) ~* 'steel'
+      and concat_ws(' ', p.summary_md, cp.notes) ~* 'skin'
+      and concat_ws(' ', p.summary_md, cp.notes) ~* 'rest'
+  )
+)::text
+from public.characters c where c.slug = 'jacob-reeves';
+"@
+
+Test-Assertion 42 "The Giver origin and Naomi material are spoiler-only" @"
+select (
+  concat_ws(' ', c.canon_summary_md, c.identity_md, c.story_role_md,
+                 c.core_conflict_md, c.tagline, c.eyebrow) !~* 'the giver|naomi carter'
+  and c.spoiler_md ~* 'the giver'
+  and c.spoiler_md ~* 'naomi carter'
+)::text
+from public.characters c where c.slug = 'jacob-reeves';
+"@
+
+Test-Assertion 43 "Naomi is linked only when one existing candidate resolves, and the link is a spoiler" @"
+with n as (
+  select array_agg(id) ids, count(*) n
+  from public.characters
+  where slug in ('naomi-carter', 'detective-naomi-carter')
+     or lower(trim(name)) in ('naomi carter', 'detective naomi carter')
+), j as (
+  select id from public.characters where slug = 'jacob-reeves'
+)
+select case
+  when n.n = 1 then (
+    select count(*) = 1 and bool_and(r.is_spoiler)
+    from public.character_relationships r
+    where r.character_id = (select id from j)
+      and r.related_character_id = n.ids[1]
+  )
+  else not exists (
+    select 1
+    from public.character_relationships r
+    where r.character_id = (select id from j)
+      and r.related_character_id = any(coalesce(n.ids, '{}'::uuid[]))
+  )
+end::text
+from n;
+"@
+
+Test-Assertion 44 "Jacob has no unsupported structured profile sections" @"
+select (
+  not exists (select 1 from public.character_eras e where e.character_id = c.id)
+  and not exists (select 1 from public.character_story_notes n where n.character_id = c.id)
+  and not exists (select 1 from public.character_key_moments m where m.character_id = c.id)
+  and not exists (select 1 from public.character_quotes q where q.character_id = c.id)
+)::text
+from public.characters c where c.slug = 'jacob-reeves';
+"@
+
+Test-Assertion 45 "Jacob uses the permanent project portrait path, not a signed URL" @"
+select (
+  portrait_url = '/images/characters/jacob-reeves-concept.png'
+  and portrait_url !~* '(amazonaws|x-amz-|notion)'
+)::text
+from public.characters where slug = 'jacob-reeves';
+"@
+
+Test-Assertion 46 "Naomi and Ren were not introduced by the Jacob-only migration" @"
+select (count(*) = 0)::text
+from public.characters
+where slug in ('detective-naomi-carter', 'naomi-carter',
+               'ren-hayashi', 'sideline');
+"@
+
+Test-StaticAssertion 47 "Jacob's migration creates no Naomi, Ren, LCPD, or remote records" {
+  $jacobMigration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260811180000_import_canonical_jacob_reeves_profile.sql'
+  if (-not (Test-Path -LiteralPath $jacobMigration)) { return $false }
+  $text = Get-Content -LiteralPath $jacobMigration -Raw
+  $noRemote = $text -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
+  $noFactionCreation = $text -notmatch '(?i)insert\s+into\s+public\.factions'
+  $onlyJacobCharacterInsert = ([regex]::Matches($text, '(?i)insert\s+into\s+public\.characters')).Count -eq 1
+  return ($noRemote -and $noFactionCreation -and $onlyJacobCharacterInsert)
+}
+
+Test-StaticAssertion 48 "Jacob's permanent concept-art file exists in the project" {
+  $portrait = Join-Path (Join-Path (Join-Path $repoRoot 'public') 'images\characters') 'jacob-reeves-concept.png'
   return ((Test-Path -LiteralPath $portrait) -and ((Get-Item -LiteralPath $portrait).Length -gt 0))
 }
 
@@ -800,7 +928,7 @@ Write-Host ("-" * 64) -ForegroundColor DarkGray
 Write-Host ("  EVIDENCE  {0} from the live local database, {1} from static migration inspection" -f $dbCount, $staticCount) -ForegroundColor Gray
 if ($failed -eq 0) {
   Write-Host ("  RESULT   {0} of {1} assertions passed, {2} failed" -f $passed, $total, $failed) -ForegroundColor Green
-  Write-Host "           Canonical character imports through Racer verified cleanly." -ForegroundColor Gray
+  Write-Host "           Canonical character imports through Jacob verified cleanly." -ForegroundColor Gray
   Write-Host "           Nothing was modified - every query was read-only." -ForegroundColor Gray
   Write-Host ("-" * 64) -ForegroundColor DarkGray
   Write-Host ""
