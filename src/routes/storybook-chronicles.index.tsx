@@ -7,14 +7,35 @@ export const Route = createFileRoute("/storybook-chronicles/")({
 });
 
 const SECTIONS: { to: string; label: string; blurb: string }[] = [
-  { to: "/storybook-chronicles", label: "Series Overview", blurb: "The premise, themes, and shape of the saga." },
+  {
+    to: "/storybook-chronicles",
+    label: "Series Overview",
+    blurb: "The premise, themes, and shape of the saga.",
+  },
   { to: "/stories", label: "Stories", blurb: "Main story arcs across the chronicle." },
   { to: "/characters", label: "Characters", blurb: "Heroes, antagonists, and supporting cast." },
   { to: "/factions", label: "Factions", blurb: "Groups, orders, and alliances." },
-  { to: "/worlds", label: "Worlds", blurb: "Settings across Earth and the cosmos." },
-  { to: "/power-systems", label: "Power Systems", blurb: "The rules that govern abilities and forces." },
-  { to: "/storybook-chronicles/timeline", label: "Timeline", blurb: "Key events in chronological order." },
-  { to: "/storybook-chronicles/development-process", label: "Development Process", blurb: "How the project is planned and built." },
+  {
+    to: "/locations",
+    label: "Locations",
+    blurb:
+      "Cities, districts, landmarks, facilities, hidden regions, planets, realms, and other settings across Storybook Chronicles.",
+  },
+  {
+    to: "/power-systems",
+    label: "Power Systems",
+    blurb: "The rules that govern abilities and forces.",
+  },
+  {
+    to: "/storybook-chronicles/timeline",
+    label: "Timeline",
+    blurb: "Key events in chronological order.",
+  },
+  {
+    to: "/storybook-chronicles/development-process",
+    label: "Development Process",
+    blurb: "How the project is planned and built.",
+  },
 ];
 
 function StorybookChroniclesHub() {

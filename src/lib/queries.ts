@@ -2,7 +2,10 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
-const must = <T,>(d: T | null, e: any): T => { if (e) throw e; return d as T; };
+const must = <T>(d: T | null, e: any): T => {
+  if (e) throw e;
+  return d as T;
+};
 
 export const storiesQO = queryOptions({
   queryKey: ["stories"],
@@ -11,13 +14,18 @@ export const storiesQO = queryOptions({
     return must(data, error);
   },
 });
-export const storyQO = (slug: string) => queryOptions({
-  queryKey: ["story", slug],
-  queryFn: async () => {
-    const { data, error } = await supabase.from("stories").select("*").eq("slug", slug).maybeSingle();
-    return must(data, error);
-  },
-});
+export const storyQO = (slug: string) =>
+  queryOptions({
+    queryKey: ["story", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stories")
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
+      return must(data, error);
+    },
+  });
 
 export const charactersQO = queryOptions({
   queryKey: ["characters"],
@@ -38,13 +46,14 @@ export const charactersQO = queryOptions({
     return must(data, error) as CharacterWithRelations[];
   },
 });
-export const characterQO = (slug: string) => queryOptions({
-  queryKey: ["character", slug],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from("characters")
-      .select(
-        `*,
+export const characterQO = (slug: string) =>
+  queryOptions({
+    queryKey: ["character", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("characters")
+        .select(
+          `*,
           primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
           character_stories(role, stories(id, slug, number, title)),
           character_factions(role, factions(id, slug, name)),
@@ -54,32 +63,39 @@ export const characterQO = (slug: string) => queryOptions({
           character_key_moments(id, title, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
           character_quotes(id, quote_md, context_md, sort_order, is_spoiler),
           character_relationships!character_relationships_character_id_fkey(id, relation_label, inverse_label, sort_order, is_spoiler, related:characters!character_relationships_related_character_id_fkey(id, slug, name, alias, portrait_url, accent_color, canon_status))`,
-      )
-      .eq("canon_status", "canon")
-      .eq("slug", slug)
-      .maybeSingle();
-    return must(data, error) as CharacterWithRelations | null;
-  },
-});
-export const charactersByStoryQO = (storyId: string) => queryOptions({
-  queryKey: ["characters", "story", storyId],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from("characters")
-      .select("*")
-      .eq("canon_status", "canon")
-      .eq("story_id", storyId)
-      .order("name");
-    return must(data, error);
-  },
-});
+        )
+        .eq("canon_status", "canon")
+        .eq("slug", slug)
+        .maybeSingle();
+      return must(data, error) as CharacterWithRelations | null;
+    },
+  });
+export const charactersByStoryQO = (storyId: string) =>
+  queryOptions({
+    queryKey: ["characters", "story", storyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("characters")
+        .select("*")
+        .eq("canon_status", "canon")
+        .eq("story_id", storyId)
+        .order("name");
+      return must(data, error);
+    },
+  });
 
 export type StoryRef = { id: string; slug: string; number: number | null; title: string };
 export type CharacterWithRelations = Tables<"characters"> & {
   primary_story: StoryRef | null;
   character_stories: Array<{ role: string | null; stories: StoryRef | null }>;
-  character_factions: Array<{ role: string | null; factions: { id: string; slug: string; name: string } | null }>;
-  character_powers: Array<{ notes: string | null; power_systems: { id: string; slug: string; name: string } | null }>;
+  character_factions: Array<{
+    role: string | null;
+    factions: { id: string; slug: string; name: string } | null;
+  }>;
+  character_powers: Array<{
+    notes: string | null;
+    power_systems: { id: string; slug: string; name: string } | null;
+  }>;
   character_eras?: Array<{
     id: string;
     era_label: string;
@@ -134,7 +150,13 @@ function listQO<T extends string>(table: T) {
   return queryOptions({
     queryKey: [table, "list"],
     queryFn: async () => {
-      const { data, error } = await supabase.from(table as any).select("*").order("name");
+      const { data, error } = await supabase
+        .from(table as any)
+        .select("*")
+        .eq("canon_status", "canon")
+        .eq("status", "published")
+        .is("archived_at", null)
+        .order("name");
       return must(data, error);
     },
   });
@@ -143,7 +165,11 @@ function detailQO<T extends string>(table: T, slug: string) {
   return queryOptions({
     queryKey: [table, "slug", slug],
     queryFn: async () => {
-      const { data, error } = await supabase.from(table as any).select("*").eq("slug", slug).maybeSingle();
+      const { data, error } = await supabase
+        .from(table as any)
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
       return must(data, error);
     },
   });
@@ -152,6 +178,19 @@ function detailQO<T extends string>(table: T, slug: string) {
 export const factionsQO = listQO("factions");
 export const factionQO = (slug: string) => detailQO("factions", slug);
 export const worldsQO = listQO("worlds");
+export const locationsQO = queryOptions({
+  queryKey: ["locations", "list"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("worlds")
+      .select("*")
+      .eq("canon_status", "canon")
+      .eq("status", "published")
+      .is("archived_at", null)
+      .order("name");
+    return must(data, error);
+  },
+});
 export const worldQO = (slug: string) => detailQO("worlds", slug);
 export const powerSystemsQO = listQO("power_systems");
 export const powerSystemQO = (slug: string) => detailQO("power_systems", slug);
@@ -159,7 +198,10 @@ export const powerSystemQO = (slug: string) => detailQO("power_systems", slug);
 export const spoilerNotesQO = queryOptions({
   queryKey: ["spoiler_notes"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("spoiler_notes").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("spoiler_notes")
+      .select("*")
+      .order("created_at", { ascending: false });
     return must(data, error);
   },
 });
@@ -195,17 +237,18 @@ export type AdminCharacterRow = {
   primary_story: StoryRef | null;
 };
 
-export const adminCharacterQO = (id: string) => queryOptions({
-  queryKey: ["admin", "character", id],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from("characters")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-    return must(data, error);
-  },
-});
+export const adminCharacterQO = (id: string) =>
+  queryOptions({
+    queryKey: ["admin", "character", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("characters")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      return must(data, error);
+    },
+  });
 
 export const adminStoriesLiteQO = queryOptions({
   queryKey: ["admin", "stories", "lite"],
@@ -215,5 +258,27 @@ export const adminStoriesLiteQO = queryOptions({
       .select("id, slug, number, title")
       .order("number");
     return must(data, error) as StoryRef[];
+  },
+});
+
+export const adminFactionsQO = queryOptions({
+  queryKey: ["admin", "factions"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("factions")
+      .select("*")
+      .order("updated_at", { ascending: false });
+    return must(data, error);
+  },
+});
+
+export const adminLocationsQO = queryOptions({
+  queryKey: ["admin", "locations"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("worlds")
+      .select("*")
+      .order("updated_at", { ascending: false });
+    return must(data, error);
   },
 });

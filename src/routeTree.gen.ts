@@ -20,6 +20,7 @@ import { Route as PowerSystemsRouteImport } from './routes/power-systems'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as FactionsRouteImport } from './routes/factions'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -34,7 +35,13 @@ import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as CharactersSlugRouteImport } from './routes/characters.$slug'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as AdminLocationsIndexRouteImport } from './routes/admin.locations.index'
+import { Route as AdminFactionsIndexRouteImport } from './routes/admin.factions.index'
 import { Route as AdminCharactersIndexRouteImport } from './routes/admin.characters.index'
+import { Route as AdminLocationsNewRouteImport } from './routes/admin.locations.new'
+import { Route as AdminLocationsIdRouteImport } from './routes/admin.locations.$id'
+import { Route as AdminFactionsNewRouteImport } from './routes/admin.factions.new'
+import { Route as AdminFactionsIdRouteImport } from './routes/admin.factions.$id'
 import { Route as AdminCharactersNewRouteImport } from './routes/admin.characters.new'
 import { Route as AdminCharactersIdRouteImport } from './routes/admin.characters.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -93,6 +100,11 @@ const McpRoute = McpRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsRoute = LocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FactionsRoute = FactionsRouteImport.update({
@@ -170,9 +182,39 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminLocationsIndexRoute = AdminLocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFactionsIndexRoute = AdminFactionsIndexRouteImport.update({
+  id: '/factions/',
+  path: '/factions/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCharactersIndexRoute = AdminCharactersIndexRouteImport.update({
   id: '/characters/',
   path: '/characters/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLocationsNewRoute = AdminLocationsNewRouteImport.update({
+  id: '/locations/new',
+  path: '/locations/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLocationsIdRoute = AdminLocationsIdRouteImport.update({
+  id: '/locations/$id',
+  path: '/locations/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFactionsNewRoute = AdminFactionsNewRouteImport.update({
+  id: '/factions/new',
+  path: '/factions/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFactionsIdRoute = AdminFactionsIdRouteImport.update({
+  id: '/factions/$id',
+  path: '/factions/$id',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCharactersNewRoute = AdminCharactersNewRouteImport.update({
@@ -203,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
+  '/locations': typeof LocationsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/portfolio': typeof PortfolioRoute
@@ -227,13 +270,20 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/new': typeof AdminCharactersNewRoute
+  '/admin/factions/$id': typeof AdminFactionsIdRoute
+  '/admin/factions/new': typeof AdminFactionsNewRoute
+  '/admin/locations/$id': typeof AdminLocationsIdRoute
+  '/admin/locations/new': typeof AdminLocationsNewRoute
   '/admin/characters/': typeof AdminCharactersIndexRoute
+  '/admin/factions/': typeof AdminFactionsIndexRoute
+  '/admin/locations/': typeof AdminLocationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
+  '/locations': typeof LocationsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/portfolio': typeof PortfolioRoute
@@ -257,7 +307,13 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/new': typeof AdminCharactersNewRoute
+  '/admin/factions/$id': typeof AdminFactionsIdRoute
+  '/admin/factions/new': typeof AdminFactionsNewRoute
+  '/admin/locations/$id': typeof AdminLocationsIdRoute
+  '/admin/locations/new': typeof AdminLocationsNewRoute
   '/admin/characters': typeof AdminCharactersIndexRoute
+  '/admin/factions': typeof AdminFactionsIndexRoute
+  '/admin/locations': typeof AdminLocationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -266,6 +322,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/factions': typeof FactionsRoute
+  '/locations': typeof LocationsRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
   '/portfolio': typeof PortfolioRoute
@@ -290,7 +347,13 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/new': typeof AdminCharactersNewRoute
+  '/admin/factions/$id': typeof AdminFactionsIdRoute
+  '/admin/factions/new': typeof AdminFactionsNewRoute
+  '/admin/locations/$id': typeof AdminLocationsIdRoute
+  '/admin/locations/new': typeof AdminLocationsNewRoute
   '/admin/characters/': typeof AdminCharactersIndexRoute
+  '/admin/factions/': typeof AdminFactionsIndexRoute
+  '/admin/locations/': typeof AdminLocationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -300,6 +363,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/contact'
     | '/factions'
+    | '/locations'
     | '/login'
     | '/mcp'
     | '/portfolio'
@@ -324,13 +388,20 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/characters/$id'
     | '/admin/characters/new'
+    | '/admin/factions/$id'
+    | '/admin/factions/new'
+    | '/admin/locations/$id'
+    | '/admin/locations/new'
     | '/admin/characters/'
+    | '/admin/factions/'
+    | '/admin/locations/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/contact'
     | '/factions'
+    | '/locations'
     | '/login'
     | '/mcp'
     | '/portfolio'
@@ -354,7 +425,13 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/characters/$id'
     | '/admin/characters/new'
+    | '/admin/factions/$id'
+    | '/admin/factions/new'
+    | '/admin/locations/$id'
+    | '/admin/locations/new'
     | '/admin/characters'
+    | '/admin/factions'
+    | '/admin/locations'
   id:
     | '__root__'
     | '/'
@@ -362,6 +439,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/contact'
     | '/factions'
+    | '/locations'
     | '/login'
     | '/mcp'
     | '/portfolio'
@@ -386,7 +464,13 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/admin/characters/$id'
     | '/admin/characters/new'
+    | '/admin/factions/$id'
+    | '/admin/factions/new'
+    | '/admin/locations/$id'
+    | '/admin/locations/new'
     | '/admin/characters/'
+    | '/admin/factions/'
+    | '/admin/locations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -395,6 +479,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   FactionsRoute: typeof FactionsRoute
+  LocationsRoute: typeof LocationsRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -491,6 +576,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations': {
+      id: '/locations'
+      path: '/locations'
+      fullPath: '/locations'
+      preLoaderRoute: typeof LocationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/factions': {
@@ -591,11 +683,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/locations/': {
+      id: '/admin/locations/'
+      path: '/locations'
+      fullPath: '/admin/locations/'
+      preLoaderRoute: typeof AdminLocationsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/factions/': {
+      id: '/admin/factions/'
+      path: '/factions'
+      fullPath: '/admin/factions/'
+      preLoaderRoute: typeof AdminFactionsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/characters/': {
       id: '/admin/characters/'
       path: '/characters'
       fullPath: '/admin/characters/'
       preLoaderRoute: typeof AdminCharactersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/locations/new': {
+      id: '/admin/locations/new'
+      path: '/locations/new'
+      fullPath: '/admin/locations/new'
+      preLoaderRoute: typeof AdminLocationsNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/locations/$id': {
+      id: '/admin/locations/$id'
+      path: '/locations/$id'
+      fullPath: '/admin/locations/$id'
+      preLoaderRoute: typeof AdminLocationsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/factions/new': {
+      id: '/admin/factions/new'
+      path: '/factions/new'
+      fullPath: '/admin/factions/new'
+      preLoaderRoute: typeof AdminFactionsNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/factions/$id': {
+      id: '/admin/factions/$id'
+      path: '/factions/$id'
+      fullPath: '/admin/factions/$id'
+      preLoaderRoute: typeof AdminFactionsIdRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/characters/new': {
@@ -633,14 +767,26 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCharactersIdRoute: typeof AdminCharactersIdRoute
   AdminCharactersNewRoute: typeof AdminCharactersNewRoute
+  AdminFactionsIdRoute: typeof AdminFactionsIdRoute
+  AdminFactionsNewRoute: typeof AdminFactionsNewRoute
+  AdminLocationsIdRoute: typeof AdminLocationsIdRoute
+  AdminLocationsNewRoute: typeof AdminLocationsNewRoute
   AdminCharactersIndexRoute: typeof AdminCharactersIndexRoute
+  AdminFactionsIndexRoute: typeof AdminFactionsIndexRoute
+  AdminLocationsIndexRoute: typeof AdminLocationsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminCharactersIdRoute: AdminCharactersIdRoute,
   AdminCharactersNewRoute: AdminCharactersNewRoute,
+  AdminFactionsIdRoute: AdminFactionsIdRoute,
+  AdminFactionsNewRoute: AdminFactionsNewRoute,
+  AdminLocationsIdRoute: AdminLocationsIdRoute,
+  AdminLocationsNewRoute: AdminLocationsNewRoute,
   AdminCharactersIndexRoute: AdminCharactersIndexRoute,
+  AdminFactionsIndexRoute: AdminFactionsIndexRoute,
+  AdminLocationsIndexRoute: AdminLocationsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -678,6 +824,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
   FactionsRoute: FactionsRoute,
+  LocationsRoute: LocationsRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
   PortfolioRoute: PortfolioRoute,

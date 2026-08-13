@@ -913,6 +913,57 @@ Test-StaticAssertion 48 "Jacob's permanent concept-art file exists in the projec
   return ((Test-Path -LiteralPath $portrait) -and ((Get-Item -LiteralPath $portrait).Length -gt 0))
 }
 
+Write-Host ""
+Write-Host "  STORY 1 FACTIONS / LOCATIONS" -ForegroundColor White
+
+Test-Assertion 49 "Exactly one published canon record exists for each core Story 1 faction" @"
+select (
+  count(*) = 4 and count(distinct slug) = 4 and bool_and(status = 'published')
+  and bool_and(canon_status = 'canon') and bool_and(archived_at is null)
+)::text from public.factions
+where slug in ('the-order', 'apex-dynamics', 'legnous-city-police-department', 'the-zealots');
+"@
+
+Test-Assertion 50 "Apex Dynamics and The Order have no duplicate name or slug candidates" @"
+select (count(*) = 2)::text from public.factions
+where lower(trim(slug)) in ('apex-dynamics', 'the-order')
+   or lower(trim(name)) in ('apex dynamics', 'the order');
+"@
+
+Test-Assertion 51 "LCPD and The Zealots each exist exactly once" @"
+select (
+  (select count(*) from public.factions where slug = 'legnous-city-police-department' and abbreviation = 'LCPD') = 1
+  and (select count(*) from public.factions where slug = 'the-zealots') = 1
+)::text;
+"@
+
+Test-Assertion 52 "Legnous City and its five approved children exist exactly once" @"
+select (
+  count(*) = 6 and count(distinct slug) = 6 and bool_and(status = 'published')
+  and bool_and(canon_status = 'canon') and bool_and(archived_at is null)
+)::text from public.worlds
+where slug in ('legnous-city', 'the-foundry', 'entertainment-district', 'financial-district', 'legnous-underground', 'maddies-memorial-park');
+"@
+
+Test-Assertion 53 "All five Story 1 child locations belong to Legnous City" @"
+select (count(*) = 5 and bool_and(w.parent_world_id = p.id))::text
+from public.worlds w cross join public.worlds p
+where p.slug = 'legnous-city'
+  and w.slug in ('the-foundry', 'entertainment-district', 'financial-district', 'legnous-underground', 'maddies-memorial-park');
+"@
+
+Test-Assertion 54 "No reserved child locations or unrelated future locations were introduced" @"
+select (count(*) = 0)::text from public.worlds
+where slug in ('the-chill-zone', 'union-market', 'apex-tower', 'hero-district', 'lifeline-medical-center', 'the-sewers', 'the-undercity', 'the-deep-places', 'elysium');
+"@
+
+Test-StaticAssertion 55 "Foundation migration never writes character-faction or character-location relationships" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260812120000_establish_story_one_factions_and_locations.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  return ($text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.character_(factions|worlds)')
+}
+
 # --- Summary ------------------------------------------------------------------
 # The @() guards below stop PowerShell collapsing a single-item filter result to
 # a scalar, which would leave .Count empty in the summary line. $Assertions is a

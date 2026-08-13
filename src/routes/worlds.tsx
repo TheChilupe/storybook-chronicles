@@ -1,29 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { worldsQO } from "@/lib/queries";
+import { locationsQO } from "@/lib/queries";
 import { EntityPage } from "@/components/entity-page";
+import { Markdown } from "@/components/markdown";
 
 export const Route = createFileRoute("/worlds")({
-  head: () => ({ meta: [{ title: "Worlds — Storybook Codex" }] }),
-  component: WorldsPage,
+  head: () => ({ meta: [{ title: "Locations — Storybook Codex" }] }),
+  component: LocationsPage,
 });
 
-function WorldsPage() {
-  const { data = [] } = useQuery(worldsQO);
+export function LocationsPage() {
+  const { data = [], error } = useQuery(locationsQO);
   return (
-    <EntityPage title="Worlds">
-      {data.length === 0
-        ? <p className="text-muted-foreground">No worlds yet. Add them from the Admin page.</p>
-        : (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {data.map((w: any) => (
-              <li key={w.id} className="rounded-xl border border-border bg-card p-4">
-                <h3 className="font-semibold">{w.name}</h3>
-                <p className="text-sm text-muted-foreground">{w.summary_md?.slice(0, 140)}</p>
-              </li>
-            ))}
-          </ul>
-        )}
+    <EntityPage title="Locations">
+      <p className="mb-6 text-muted-foreground">
+        Cities, districts, landmarks, facilities, hidden regions, planets, realms, and other
+        settings across Storybook Chronicles.
+      </p>
+      {error ? (
+        <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          Could not load locations: {error instanceof Error ? error.message : "Unknown query error"}
+        </p>
+      ) : data.length === 0 ? (
+        <p className="text-muted-foreground">No locations yet. Add them from the Admin page.</p>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {data.map((w: any) => (
+            <li key={w.id} className="rounded-xl border border-border bg-card p-5">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                {w.location_type}
+                {w.parent?.name ? ` · ${w.parent.name}` : ""}
+              </p>
+              <h3 className="mt-1 font-semibold">{w.name}</h3>
+              <div className="mt-2 text-sm text-muted-foreground">
+                <Markdown>{w.summary_md ?? ""}</Markdown>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </EntityPage>
   );
 }

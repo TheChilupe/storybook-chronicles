@@ -4,7 +4,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader } from "@/components/site-header";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — Storybook Codex" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({
+    meta: [{ title: "Admin — Storybook Codex" }, { name: "robots", content: "noindex,nofollow" }],
+  }),
   component: AdminLayout,
 });
 
@@ -46,15 +48,22 @@ function AdminSubnav() {
   const items = [
     { to: "/admin", label: "Dashboard", exact: true },
     { to: "/admin/characters", label: "Characters", exact: false },
+    { to: "/admin/factions", label: "Factions", exact: false },
+    { to: "/admin/locations", label: "Locations", exact: false },
   ];
   return (
-    <nav aria-label="Admin sections" className="mb-6 flex flex-wrap gap-1 border-b border-border pb-2 text-sm">
+    <nav
+      aria-label="Admin sections"
+      className="mb-6 flex flex-wrap gap-1 border-b border-border pb-2 text-sm"
+    >
       {items.map((i) => (
         <Link
           key={i.to}
           to={i.to as any}
           className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
-          activeProps={{ className: "rounded-md px-3 py-1.5 bg-secondary text-foreground font-medium" }}
+          activeProps={{
+            className: "rounded-md px-3 py-1.5 bg-secondary text-foreground font-medium",
+          }}
           activeOptions={{ exact: i.exact }}
         >
           {i.label}
