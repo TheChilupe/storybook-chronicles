@@ -290,7 +290,19 @@ function CharacterEditor() {
           )}
           {tab === "identity" && <IdentityForm form={form} update={update} />}
           {tab === "narrative" && <NarrativeForm form={form} update={update} />}
-          {tab === "media" && <MediaForm form={form} update={update} slug={row.slug} />}
+          {tab === "media" && (
+            <MediaForm
+              form={form}
+              update={update}
+              characterId={id}
+              slug={form.slug}
+              onPersisted={async () => {
+                await invalidate();
+                setDirty(false);
+                setNotice("Portrait uploaded and saved.");
+              }}
+            />
+          )}
           {tab === "publishing" && (
             <PublishingPanel
               form={form}
@@ -503,11 +515,15 @@ function NarrativeForm({
 function MediaForm({
   form,
   update,
+  characterId,
   slug,
+  onPersisted,
 }: {
   form: EditableFields;
   update: <K extends keyof EditableFields>(k: K, v: EditableFields[K]) => void;
+  characterId: string;
   slug: string;
+  onPersisted: () => Promise<void>;
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -516,12 +532,22 @@ function MediaForm({
     setUploading(true); setUploadError(null);
     try {
       const ext = (file.name.split(".").pop() || "png").toLowerCase();
-      const path = `characters/${slug}-${Date.now()}.${ext}`;
+      const safeSlug = slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "character";
+      const path = `characters/${characterId}/${safeSlug}-${Date.now()}.${ext}`;
       const up = await supabase.storage.from("lore-images").upload(path, file, { upsert: true, contentType: file.type });
       if (up.error) throw up.error;
       const signed = await supabase.storage.from("lore-images").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
       if (signed.error || !signed.data?.signedUrl) throw signed.error ?? new Error("Failed to sign URL");
+      const { error: persistError } = await supabase
+        .from("characters")
+        .update({ portrait_url: signed.data.signedUrl })
+        .eq("id", characterId);
+      if (persistError) {
+        await supabase.storage.from("lore-images").remove([path]);
+        throw persistError;
+      }
       update("portrait_url", signed.data.signedUrl);
+      await onPersisted();
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : "Upload failed");
     } finally {
