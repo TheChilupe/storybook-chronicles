@@ -1,5 +1,5 @@
 <#
-  Read-only verification of the canonical character imports through Double X
+  Read-only verification of the canonical character imports through H
   against the LOCAL Supabase database.
 
   Run it through npm from Windows PowerShell:
@@ -1044,7 +1044,136 @@ select (
 )::text from x;
 "@
 
-Test-Assertion 61 "Double X has no unsupported structured sections or media" @"
+Test-StaticAssertion 61 "Double X migration seeded no unsupported structured sections or media" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815090000_import_canonical_double_x_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noUnsupportedInserts = $text -notmatch '(?i)insert\s+into\s+public\.(character_eras|character_story_notes|character_key_moments|character_quotes)'
+  $portraitStartsEmpty = $text -match '(?i)portrait_url\s*=\s*NULL'
+  return ($noUnsupportedInserts -and $portraitStartsEmpty)
+}
+
+Test-StaticAssertion 62 "Double X migration seeded no faction, location, or character relationships" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815090000_import_canonical_double_x_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  return ($text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.(factions|worlds|character_factions|character_worlds|character_relationships)')
+}
+
+Test-StaticAssertion 63 "Double X migration is local-only and never writes factions, locations, or relationships" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815090000_import_canonical_double_x_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noRemote = $text -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
+  $noRelationshipWrites = $text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.(factions|worlds|character_factions|character_worlds|character_relationships)'
+  $oneCharacterInsert = ([regex]::Matches($text, '(?i)insert\s+into\s+public\.characters')).Count -eq 1
+  return ($noRemote -and $noRelationshipWrites -and $oneCharacterInsert)
+}
+
+Write-Host ""
+Write-Host "  H / MERCENARY H" -ForegroundColor White
+
+Test-Assertion 64 "Exactly one published canon H exists with the approved identity" @"
+select (
+  count(*) = 1
+  and min(name) = 'H'
+  and min(alias) = 'Mercenary H'
+  and min(role) = 'Supporting Character'
+  and min(canon_status) = 'canon'
+  and min(status) = 'published'
+  and bool_and(archived_at is null)
+)::text
+from public.characters
+where lower(trim(slug)) in ('h', 'mercenary-h', 'mercenaryh')
+   or lower(trim(name)) in ('h', 'mercenary h', 'mercenary-h')
+   or lower(trim(coalesce(alias, ''))) in ('h', 'mercenary h', 'mercenary-h');
+"@
+
+Test-Assertion 65 "H retains the creator-approved rival, friend, and co-researcher characterization" @"
+select (
+  canon_summary_md ~* 'world-famous mercenary and martial-arts obsessive'
+  and canon_summary_md ~* 'precision rather than Rush''s raw travel and acceleration'
+  and canon_summary_md ~* 'rivalry, training, and eventually one of Rush''s earliest genuine friendships'
+  and canon_summary_md ~* 'second friend Rush gains through his new life as a hero'
+  and canon_summary_md ~* 'co-researchers of speed'
+)::text
+from public.characters where slug = 'h';
+"@
+
+Test-Assertion 66 "H has normal vision and energy sensing is supplemental, never a sight replacement" @"
+with h_text as (
+  select
+    concat_ws(' ', c.canon_summary_md, c.identity_md, c.story_role_md,
+                   c.core_conflict_md, c.spoiler_md, c.tagline, c.eyebrow,
+                   string_agg(concat_ws(' ', p.name, p.summary_md, p.spoiler_md, cp.notes), ' ')) txt
+  from public.characters c
+  left join public.character_powers cp on cp.character_id = c.id
+  left join public.power_systems p on p.id = cp.power_system_id
+  where c.slug = 'h'
+  group by c.id
+)
+select (
+  txt !~* '\m(blind|blinded|eyesight|energy sonar)\M'
+  and txt ~* 'normal vision'
+  and txt ~* 'supplement'
+  and txt ~* 'not telepathy'
+)::text from h_text;
+"@
+
+Test-Assertion 67 "H has Story 1 primary and exactly Story 1 and Story 2 appearances" @"
+select (
+  c.story_id = s1.id
+  and c.primary_story_id = s1.id
+  and (select count(*) from public.character_stories cs where cs.character_id = c.id) = 2
+  and (
+    select array_agg(s.number order by s.number)
+    from public.character_stories cs
+    join public.stories s on s.id = cs.story_id
+    where cs.character_id = c.id
+  ) = array[1, 2]::integer[]
+)::text
+from public.characters c
+cross join public.stories s1
+where c.slug = 'h' and s1.slug = 'rush' and s1.number = 1;
+"@
+
+Test-Assertion 68 "H has exactly the three approved non-duplicated power links" @"
+select (
+  (select count(*) from public.character_powers cp where cp.character_id = c.id) = 3
+  and (select count(distinct cp.power_system_id) from public.character_powers cp where cp.character_id = c.id) = 3
+  and (
+    select array_agg(p.slug order by p.slug)
+    from public.character_powers cp
+    join public.power_systems p on p.id = cp.power_system_id
+    where cp.character_id = c.id
+  ) = array['energy-sensing', 'localized-super-speed', 'martial-arts-mastery']::text[]
+)::text
+from public.characters c where c.slug = 'h';
+"@
+
+Test-Assertion 69 "H's martial-arts enthusiasm, foodie identity, and caloric demands remain public" @"
+select (
+  concat_ws(' ', canon_summary_md, identity_md, story_role_md) ~* 'martial arts movies'
+  and concat_ws(' ', canon_summary_md, identity_md, story_role_md) ~* 'manga'
+  and concat_ws(' ', canon_summary_md, identity_md, story_role_md) ~* 'foodie'
+  and concat_ws(' ', canon_summary_md, identity_md, story_role_md) ~* 'calor'
+  and concat_ws(' ', canon_summary_md, identity_md, story_role_md) ~* 'shared meals'
+)::text
+from public.characters where slug = 'h';
+"@
+
+Test-Assertion 70 "Detailed Double X, Adam, and Stackston material remains in spoiler content" @"
+select (
+  spoiler_md ~* 'worked for Double X and trained with him'
+  and spoiler_md ~* 'comparatively sane'
+  and spoiler_md ~* 'connection to Adam'
+  and spoiler_md ~* 'Stackston Incident'
+  and concat_ws(' ', canon_summary_md, identity_md, story_role_md, core_conflict_md) !~* 'Stackston Incident'
+)::text
+from public.characters where slug = 'h';
+"@
+
+Test-Assertion 71 "H has no unsupported structured sections or media" @"
 select (
   c.portrait_url is null
   and not exists (select 1 from public.character_eras e where e.character_id = c.id)
@@ -1052,21 +1181,21 @@ select (
   and not exists (select 1 from public.character_key_moments m where m.character_id = c.id)
   and not exists (select 1 from public.character_quotes q where q.character_id = c.id)
 )::text
-from public.characters c where c.slug = 'double-x';
+from public.characters c where c.slug = 'h';
 "@
 
-Test-Assertion 62 "Double X has no auto-created faction, location, or character relationships" @"
+Test-Assertion 72 "H has no auto-created faction, location, or character relationships" @"
 select (
   not exists (select 1 from public.character_factions x where x.character_id = c.id)
   and not exists (select 1 from public.character_worlds x where x.character_id = c.id)
   and not exists (select 1 from public.character_relationships x where x.character_id = c.id)
   and not exists (select 1 from public.character_relationships x where x.related_character_id = c.id)
 )::text
-from public.characters c where c.slug = 'double-x';
+from public.characters c where c.slug = 'h';
 "@
 
-Test-StaticAssertion 63 "Double X migration is local-only and never writes factions, locations, or relationships" {
-  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815090000_import_canonical_double_x_profile.sql'
+Test-StaticAssertion 73 "H migration is local-only and never writes factions, locations, or relationships" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815100000_import_canonical_h_profile.sql'
   if (-not (Test-Path -LiteralPath $migration)) { return $false }
   $text = Get-Content -LiteralPath $migration -Raw
   $noRemote = $text -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
@@ -1090,7 +1219,7 @@ Write-Host ("-" * 64) -ForegroundColor DarkGray
 Write-Host ("  EVIDENCE  {0} from the live local database, {1} from static migration inspection" -f $dbCount, $staticCount) -ForegroundColor Gray
 if ($failed -eq 0) {
   Write-Host ("  RESULT   {0} of {1} assertions passed, {2} failed" -f $passed, $total, $failed) -ForegroundColor Green
-  Write-Host "           Canonical character imports through Double X verified cleanly." -ForegroundColor Gray
+  Write-Host "           Canonical character imports through H verified cleanly." -ForegroundColor Gray
   Write-Host "           Nothing was modified - every query was read-only." -ForegroundColor Gray
   Write-Host ("-" * 64) -ForegroundColor DarkGray
   Write-Host ""
