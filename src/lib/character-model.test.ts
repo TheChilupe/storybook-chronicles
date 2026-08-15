@@ -150,27 +150,76 @@ test("mixed rows return only public ones, for every spoiler-capable collection",
     } as Partial<CharacterWithRelations>),
   );
 
-  assert.deepEqual(m.progression.map((p) => p.era), ["keep"]);
-  assert.deepEqual(m.storyProgression.map((p) => p.role), ["keep"]);
-  assert.deepEqual(m.keyMoments.map((k) => k.title), ["keep"]);
-  assert.deepEqual(m.quotes.map((q) => q.quote), ["keep"]);
-  assert.deepEqual(m.relationshipCards.map((r) => r.characterSlug), ["keep"]);
+  assert.deepEqual(
+    m.progression.map((p) => p.era),
+    ["keep"],
+  );
+  assert.deepEqual(
+    m.storyProgression.map((p) => p.role),
+    ["keep"],
+  );
+  assert.deepEqual(
+    m.keyMoments.map((k) => k.title),
+    ["keep"],
+  );
+  assert.deepEqual(
+    m.quotes.map((q) => q.quote),
+    ["keep"],
+  );
+  assert.deepEqual(
+    m.relationshipCards.map((r) => r.characterSlug),
+    ["keep"],
+  );
 });
 
 /* --- 5. tables with no spoiler concept are unaffected --- */
 
-test("collections from tables without is_spoiler are never filtered", () => {
+test("collections without spoiler flags remain visible", () => {
   const m = toCharacterModel(
     makeCharacter({
       character_stories: [{ role: "lead", stories: story }],
-      character_factions: [{ role: "founder", factions: { id: "f1", slug: "the-order", name: "The Order" } }],
-      character_powers: [{ notes: "n", power_systems: { id: "p1", slug: "erasure", name: "Erasure" } }],
+      character_powers: [
+        { notes: "n", power_systems: { id: "p1", slug: "erasure", name: "Erasure" } },
+      ],
     } as Partial<CharacterWithRelations>),
   );
 
   assert.equal(m.stories.length, 1, "character_stories has no spoiler column");
-  assert.equal(m.factions.length, 1, "character_factions has no spoiler column");
   assert.equal(m.powers.length, 1, "character_powers has no spoiler column");
+});
+
+test("faction affiliations respect public and revealed spoiler states", () => {
+  const character = makeCharacter({
+    character_factions: [
+      {
+        role: "Officer",
+        description: "Public service role",
+        is_spoiler: false,
+        factions: { id: "public", slug: "lcpd", name: "LCPD" },
+      },
+      {
+        role: "Operative",
+        description: "Hidden role",
+        is_spoiler: true,
+        factions: { id: "secret", slug: "the-order", name: "The Order" },
+      },
+    ],
+  } as Partial<CharacterWithRelations>);
+
+  const publicModel = toCharacterModel(character);
+  assert.deepEqual(
+    publicModel.factions.map((f) => f.name),
+    ["LCPD"],
+  );
+  assert.equal(publicModel.factions[0].description, "Public service role");
+  assert.equal(publicModel.hasSpoilerRows, true);
+
+  const revealedModel = toCharacterModel(character, { revealed: true });
+  assert.deepEqual(
+    revealedModel.factions.map((f) => f.name),
+    ["LCPD", "The Order"],
+  );
+  assert.equal(revealedModel.factions[1].isSpoiler, true);
 });
 
 /* --- absent flags must not hide content --- */
@@ -193,7 +242,9 @@ test("null or undefined is_spoiler is treated as public", () => {
 /* --- the spoiler_md body itself is still carried (gated by SpoilerSection) --- */
 
 test("spoiler_md is still passed through for the reveal-toggle section", () => {
-  const m = toCharacterModel(makeCharacter({ spoiler_md: "secret body" } as Partial<CharacterWithRelations>));
+  const m = toCharacterModel(
+    makeCharacter({ spoiler_md: "secret body" } as Partial<CharacterWithRelations>),
+  );
   assert.equal(m.spoiler, "secret body");
 });
 
@@ -284,7 +335,10 @@ test("hasSpoilerRows reports structured spoiler content in either reveal state",
 
 test("a character with spoiler rows but no spoiler_md still reports hidden content", () => {
   const m = toCharacterModel(
-    makeCharacter({ spoiler_md: null, character_quotes: [quote("hide", true)] } as Partial<CharacterWithRelations>),
+    makeCharacter({
+      spoiler_md: null,
+      character_quotes: [quote("hide", true)],
+    } as Partial<CharacterWithRelations>),
   );
   assert.equal(m.spoiler, null);
   assert.equal(m.quotes.length, 0, "still hidden by default");

@@ -1,6 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import cloudBg from "@/assets/main-cloud-bg.jpg";
+import loveLetterScreenshot from "@/assets/love-letter-screenshot.png";
+
+type PortfolioProject = {
+  name: string;
+  type: string;
+  description: string;
+  role: string;
+  contribution: string;
+  techStack: string[];
+  image?: string;
+  liveUrl: string;
+  status: string;
+  accessNote: string;
+};
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -49,16 +63,28 @@ const demonstrates = [
 const skills: { skill: string; demo: string }[] = [
   { skill: "Project Planning", demo: "Multi-year roadmap, milestone planning, release planning" },
   { skill: "Documentation", demo: "Master Lore Index, Notion Wiki, project documentation" },
-  { skill: "Information Architecture", demo: "Character database, navigation, knowledge organization" },
-  { skill: "AI Workflow Design", demo: "ChatGPT, Claude, Lovable, prompt engineering, iterative development" },
+  {
+    skill: "Information Architecture",
+    demo: "Character database, navigation, knowledge organization",
+  },
+  {
+    skill: "AI Workflow Design",
+    demo: "ChatGPT, Claude, Lovable, prompt engineering, iterative development",
+  },
   { skill: "Risk Management", demo: "Scope control, canon consistency, long-term planning" },
   { skill: "GitHub", demo: "Version control and repository management" },
   { skill: "ClickUp", demo: "Task planning, milestone tracking" },
   { skill: "Product Thinking", demo: "Portfolio architecture, UX improvements, prioritization" },
   { skill: "Creative Direction", demo: "Character concepts, visual identity, worldbuilding" },
   { skill: "Concept Art Production", demo: "AI-generated artwork and design iteration" },
-  { skill: "Technical Research", demo: "Evaluating AI tools, PM software, and emerging technologies" },
-  { skill: "Budget & Scope Management", demo: "Managing subscriptions, software costs, and keeping the project within scope" },
+  {
+    skill: "Technical Research",
+    demo: "Evaluating AI tools, PM software, and emerging technologies",
+  },
+  {
+    skill: "Budget & Scope Management",
+    demo: "Managing subscriptions, software costs, and keeping the project within scope",
+  },
   {
     skill: "Stakeholder Communication",
     demo: "Professional PM experience collaborating with teams, documenting decisions, and communicating project progress",
@@ -76,6 +102,23 @@ const workflow = [
   "Iteration",
 ];
 
+const selectedProjects: PortfolioProject[] = [
+  {
+    name: "Love Letter",
+    type: "Private Relationship Web App",
+    status: "Published / Actively Iterated",
+    description:
+      "Love Letter is a private couples-focused web application designed to turn getting to know one another into an intentional, lifelong ritual. Through guided questions, protected answer reveals, shared memories, real-world rewards, special events, and AI-generated prompts, the product helps two independent, career-focused partners continually discover more about each other.",
+    role: "Product Designer / Product Owner / AI-Assisted Full-Stack Developer",
+    contribution:
+      "Product design, requirements definition, privacy architecture, UX, full-stack implementation, AI integration, and iterative delivery based on stakeholder feedback.",
+    techStack: ["React", "TypeScript", "TanStack", "Supabase", "Postgres", "AI", "Tailwind"],
+    image: loveLetterScreenshot,
+    liveUrl: "https://our-sweet-notes.lovable.app/home",
+    accessNote: "Private authenticated experience",
+  },
+];
+
 const roadmap: { project: string; status: string; description: string }[] = [
   {
     project: "AI Portfolio Expansion",
@@ -88,9 +131,9 @@ const roadmap: { project: string; status: string; description: string }[] = [
     description: "Reader-facing interactive layer on top of the Storybook Chronicles codex.",
   },
   {
-    project: "Future Product Case Study",
-    status: "Coming Soon",
-    description: "A dedicated software product case study documented end to end.",
+    project: "Love Letter Case Study",
+    status: "Planned",
+    description: "A deeper look at the product decisions and delivery behind Love Letter.",
   },
 ];
 
@@ -124,8 +167,8 @@ function PortfolioPage() {
             Portfolio
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-foreground/80">
-            Real projects demonstrating Project Management, Product Thinking,
-            AI-assisted workflows, and creative development.
+            Real projects demonstrating Project Management, Product Thinking, AI-assisted workflows,
+            and creative development.
           </p>
         </div>
       </section>
@@ -151,34 +194,28 @@ function PortfolioPage() {
           <span className="relative text-xs uppercase tracking-[0.25em] text-primary">
             Featured Case Study
           </span>
-          <h2 className="relative mt-3 text-3xl font-semibold sm:text-4xl">
-            Storybook Chronicles
-          </h2>
+          <h2 className="relative mt-3 text-3xl font-semibold sm:text-4xl">Storybook Chronicles</h2>
           <p className="relative mt-2 text-lg text-foreground/80">
             A Living Product Management Case Study
           </p>
           <div className="relative mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
             <p>
-              Storybook Chronicles is my flagship long-term project and serves
-              as the foundation of my Creative Project Management portfolio.
+              Storybook Chronicles is my flagship long-term project and serves as the foundation of
+              my Creative Project Management portfolio.
             </p>
             <p>
-              Originally conceived as a fictional universe, the project has
-              evolved into a practical sandbox where I develop and apply
-              real-world project management, product development, AI
-              collaboration, information architecture, and software delivery
-              skills.
+              Originally conceived as a fictional universe, the project has evolved into a practical
+              sandbox where I develop and apply real-world project management, product development,
+              AI collaboration, information architecture, and software delivery skills.
             </p>
             <p>
-              Every system, workflow, roadmap, and design decision documented
-              throughout this website reflects how I approach planning,
-              execution, and continuous improvement.
+              Every system, workflow, roadmap, and design decision documented throughout this
+              website reflects how I approach planning, execution, and continuous improvement.
             </p>
             <p>
-              As I continue to grow professionally, this portfolio will expand
-              with additional projects, but Storybook Chronicles will remain
-              the cornerstone that demonstrates my process from vision to
-              execution.
+              As I continue to grow professionally, this portfolio will expand with additional
+              projects, but Storybook Chronicles will remain the cornerstone that demonstrates my
+              process from vision to execution.
             </p>
           </div>
           <div className="relative mt-8 flex flex-wrap gap-3">
@@ -194,6 +231,113 @@ function PortfolioPage() {
             >
               Explore Storybook Chronicles
             </Link>
+          </div>
+        </section>
+
+        {/* Selected Projects */}
+        <section className="mt-20">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Product work
+              </span>
+              <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">Selected Projects</h2>
+            </div>
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Shipped products shaped through product thinking, technical delivery, and continuous
+              iteration.
+            </p>
+          </div>
+
+          <div className="grid gap-6">
+            {selectedProjects.map((project) => (
+              <article
+                key={project.name}
+                className="grid overflow-hidden rounded-3xl border border-border bg-card lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
+              >
+                <div className="min-w-0 border-b border-border bg-secondary/30 p-4 sm:p-6 lg:border-b-0 lg:border-r">
+                  {project.image ? (
+                    <img
+                      src={project.image}
+                      alt={`${project.name} application screenshot`}
+                      className="h-auto max-h-[40rem] w-full rounded-2xl object-contain"
+                    />
+                  ) : (
+                    <div className="flex aspect-[4/3] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-background/40 px-6 text-center">
+                      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Project screenshot
+                      </span>
+                      <span className="mt-2 max-w-xs text-sm text-muted-foreground">
+                        Owner-approved Love Letter image will appear here.
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0 p-6 sm:p-8 lg:p-10">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-xs uppercase tracking-[0.2em] text-primary">
+                      {project.type}
+                    </span>
+                    <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      {project.status}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    {project.name}
+                  </h3>
+                  <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                    {project.description}
+                  </p>
+
+                  <div className="mt-7 grid gap-5 border-t border-border pt-6">
+                    <div>
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Role
+                      </h4>
+                      <p className="mt-2 text-sm font-semibold leading-relaxed text-foreground">
+                        {project.role}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Contribution
+                      </h4>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        {project.contribution}
+                      </p>
+                    </div>
+                  </div>
+
+                  <ul
+                    aria-label={`${project.name} technology stack`}
+                    className="mt-6 flex flex-wrap gap-2"
+                  >
+                    {project.techStack.map((technology) => (
+                      <li
+                        key={technology}
+                        className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground"
+                      >
+                        {technology}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-8 flex flex-wrap items-center gap-4">
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:opacity-90"
+                    >
+                      View Live App
+                    </a>
+                    <span className="text-xs text-muted-foreground">{project.accessNote}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -224,13 +368,10 @@ function PortfolioPage() {
 
         {/* What This Project Demonstrates */}
         <section className="mt-20">
-          <h2 className="text-2xl font-semibold sm:text-3xl">
-            What This Project Demonstrates
-          </h2>
+          <h2 className="text-2xl font-semibold sm:text-3xl">What This Project Demonstrates</h2>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            This project showcases how I manage a long-term creative product
-            while balancing planning, documentation, learning, budgeting,
-            scope, and continuous iteration.
+            This project showcases how I manage a long-term creative product while balancing
+            planning, documentation, learning, budgeting, scope, and continuous iteration.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {demonstrates.map((d, i) => (
@@ -311,11 +452,10 @@ function PortfolioPage() {
             </span>
           </div>
           <p className="max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Storybook Chronicles is only the beginning. Future projects will
-            expand this portfolio into a broader collection of project
-            management case studies, AI-assisted workflows, software
-            development projects, and creative experiments that continue
-            strengthening both my technical and leadership skills.
+            Storybook Chronicles is only the beginning. Future projects will expand this portfolio
+            into a broader collection of project management case studies, AI-assisted workflows,
+            software development projects, and creative experiments that continue strengthening both
+            my technical and leadership skills.
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {roadmap.map((r) => (
@@ -340,12 +480,10 @@ function PortfolioPage() {
 
         {/* Closing CTA */}
         <section className="mt-20 rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
-          <h2 className="text-2xl font-semibold sm:text-3xl">
-            Want the full story?
-          </h2>
+          <h2 className="text-2xl font-semibold sm:text-3xl">Want the full story?</h2>
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-            Dive into the flagship case study, review my resume, or get in
-            touch about creative and project management work.
+            Dive into the flagship case study, review my resume, or get in touch about creative and
+            project management work.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link

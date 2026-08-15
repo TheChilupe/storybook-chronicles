@@ -65,7 +65,14 @@ export type CharacterModel = {
   initials: string;
   primaryStory: StoryRef | null;
   stories: Array<{ story: StoryRef; role: string | null }>;
-  factions: Array<{ id: string; slug: string; name: string; role: string | null }>;
+  factions: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    role: string | null;
+    description: string | null;
+    isSpoiler: boolean;
+  }>;
   powers: Array<{ id: string; slug: string; name: string; notes: string | null }>;
   overview: string | null;
   identity: string | null;
@@ -130,7 +137,9 @@ function spoilerTag(row: SpoilerFlagged): boolean {
 }
 
 /** True when any of the given collections holds at least one spoiler row. */
-function anySpoilerRow(...collections: Array<readonly SpoilerFlagged[] | null | undefined>): boolean {
+function anySpoilerRow(
+  ...collections: Array<readonly SpoilerFlagged[] | null | undefined>
+): boolean {
   return collections.some((rows) => (rows ?? []).some(spoilerTag));
 }
 
@@ -164,12 +173,20 @@ export function toCharacterModel(
   const stories = (c.character_stories ?? [])
     .filter((r) => r.stories)
     .map((r) => ({ story: r.stories as StoryRef, role: r.role }));
-  const factions = (c.character_factions ?? [])
+  const factions = visibleRows(c.character_factions, revealed)
     .filter((r) => r.factions)
-    .map((r) => ({ ...(r.factions as { id: string; slug: string; name: string }), role: r.role }));
+    .map((r) => ({
+      ...(r.factions as { id: string; slug: string; name: string }),
+      role: r.role,
+      description: r.description,
+      isSpoiler: spoilerTag(r),
+    }));
   const powers = (c.character_powers ?? [])
     .filter((r) => r.power_systems)
-    .map((r) => ({ ...(r.power_systems as { id: string; slug: string; name: string }), notes: r.notes }));
+    .map((r) => ({
+      ...(r.power_systems as { id: string; slug: string; name: string }),
+      notes: r.notes,
+    }));
   const bySort = <T extends { sort_order: number }>(a: T, b: T) => a.sort_order - b.sort_order;
   // Every collection below comes from a table carrying `is_spoiler`, so each is
   // filtered through the single spoiler policy before rendering, and each item
@@ -244,6 +261,7 @@ export function toCharacterModel(
     spoiler: c.spoiler_md ?? null,
     hasSpoilerRows: anySpoilerRow(
       c.character_eras,
+      c.character_factions,
       c.character_story_notes,
       c.character_relationships,
       c.character_key_moments,

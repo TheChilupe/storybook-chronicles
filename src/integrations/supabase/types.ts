@@ -66,19 +66,25 @@ export type Database = {
         Row: {
           character_id: string;
           created_at: string;
+          description: string | null;
           faction_id: string;
+          is_spoiler: boolean;
           role: string | null;
         };
         Insert: {
           character_id: string;
           created_at?: string;
+          description?: string | null;
           faction_id: string;
+          is_spoiler?: boolean;
           role?: string | null;
         };
         Update: {
           character_id?: string;
           created_at?: string;
+          description?: string | null;
           faction_id?: string;
+          is_spoiler?: boolean;
           role?: string | null;
         };
         Relationships: [

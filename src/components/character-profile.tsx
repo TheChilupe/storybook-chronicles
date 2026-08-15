@@ -95,10 +95,7 @@ export function CharacterSection({
           {eyebrow}
         </p>
       )}
-      <h2
-        id={id ? `${id}-title` : undefined}
-        className="mb-4 text-xl font-semibold sm:text-2xl"
-      >
+      <h2 id={id ? `${id}-title` : undefined} className="mb-4 text-xl font-semibold sm:text-2xl">
         {title}
       </h2>
       {children}
@@ -191,7 +188,8 @@ function PortraitUploader({ m }: { m: CharacterModel }) {
       const signed = await supabase.storage
         .from("lore-images")
         .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
-      if (signed.error || !signed.data?.signedUrl) throw signed.error ?? new Error("Failed to sign URL");
+      if (signed.error || !signed.data?.signedUrl)
+        throw signed.error ?? new Error("Failed to sign URL");
       const upd = await supabase
         .from("characters")
         .update({ portrait_url: signed.data.signedUrl })
@@ -274,31 +272,22 @@ export function CharacterHero({ m }: { m: CharacterModel }) {
         <Portrait m={m} />
         <div className="min-w-0 flex-1">
           {m.eyebrow && (
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              {m.eyebrow}
-            </p>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{m.eyebrow}</p>
           )}
           <h1 className="mt-1 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
             {m.displayName}
           </h1>
           {m.heroName && (
-            <p
-              className="mt-1 text-xl font-semibold sm:text-2xl"
-              style={{ color: accent }}
-            >
+            <p className="mt-1 text-xl font-semibold sm:text-2xl" style={{ color: accent }}>
               {m.heroName}
             </p>
           )}
           {m.tagline && (
-            <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              {m.tagline}
-            </p>
+            <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">{m.tagline}</p>
           )}
           <div className="mt-5 flex flex-wrap gap-2">
             {m.role && <Badge accent={accent}>{m.role}</Badge>}
-            {m.primaryStory && (
-              <Badge accent={accent}>{storyLabel(m.primaryStory)}</Badge>
-            )}
+            {m.primaryStory && <Badge accent={accent}>{storyLabel(m.primaryStory)}</Badge>}
             {m.powers.slice(0, 3).map((p) => (
               <Badge key={p.id} accent={accent}>
                 {p.name}
@@ -334,19 +323,13 @@ export function CharacterQuickFacts({ m }: { m: CharacterModel }) {
 
   if (!facts.length) return null;
   return (
-    <aside
-      aria-label="Quick facts"
-      className="rounded-2xl border border-border bg-card p-6"
-    >
+    <aside aria-label="Quick facts" className="rounded-2xl border border-border bg-card p-6">
       <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         Quick facts
       </h2>
       <dl className="grid gap-3 text-sm">
         {facts.map((f) => (
-          <div
-            key={f.label}
-            className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
-          >
+          <div key={f.label} className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3">
             <dt className="text-muted-foreground">{f.label}</dt>
             <dd className="min-w-0 text-foreground">{f.value}</dd>
           </div>
@@ -385,7 +368,10 @@ export function CharacterIdentity({ m }: { m: CharacterModel }) {
   const accent = accentOf(m);
   const pull = extractPullQuote(m.identity);
   const body = pull
-    ? m.identity.split("\n").filter((l) => !l.trim().startsWith(">")).join("\n")
+    ? m.identity
+        .split("\n")
+        .filter((l) => !l.trim().startsWith(">"))
+        .join("\n")
     : m.identity;
   return (
     <CharacterSection id="identity" title="Character Identity" accent={accent}>
@@ -436,19 +422,10 @@ export function CharacterPowers({ m }: { m: CharacterModel }) {
   if (!m.powers.length) return null;
   const accent = accentOf(m);
   return (
-    <CharacterSection
-      id="powers"
-      title="Powers and Abilities"
-      accent={accent}
-    >
+    <CharacterSection id="powers" title="Powers and Abilities" accent={accent}>
       <div className="grid gap-3 sm:grid-cols-2">
         {m.powers.map((p) => (
-          <CharacterPowerCard
-            key={p.id}
-            name={p.name}
-            notes={p.notes}
-            accent={accent}
-          />
+          <CharacterPowerCard key={p.id} name={p.name} notes={p.notes} accent={accent} />
         ))}
       </div>
     </CharacterSection>
@@ -459,11 +436,7 @@ export function CharacterPowers({ m }: { m: CharacterModel }) {
 
 export type Limitation = { title: string; body: string };
 
-export function CharacterLimitations({
-  items,
-}: {
-  items: Limitation[] | undefined | null;
-}) {
+export function CharacterLimitations({ items }: { items: Limitation[] | undefined | null }) {
   if (!items?.length) return null;
   return (
     <CharacterSection id="limitations" title="Limitations">
@@ -474,8 +447,7 @@ export function CharacterLimitations({
             className="rounded-xl border p-4"
             style={{
               borderColor: "color-mix(in oklab, var(--color-destructive) 40%, transparent)",
-              background:
-                "color-mix(in oklab, var(--color-destructive) 6%, transparent)",
+              background: "color-mix(in oklab, var(--color-destructive) 6%, transparent)",
             }}
           >
             <h3 className="text-sm font-semibold text-foreground">{l.title}</h3>
@@ -600,10 +572,7 @@ export function CharacterCoreConflict({
       >
         The defining tension
       </p>
-      <h2
-        id="core-conflict-title"
-        className="mb-4 text-xl font-semibold sm:text-2xl"
-      >
+      <h2 id="core-conflict-title" className="mb-4 text-xl font-semibold sm:text-2xl">
         Core Conflict
       </h2>
       <div
@@ -644,14 +613,9 @@ export function CharacterProgression({
               </p>
               <SpoilerTag on={e.isSpoiler} />
             </div>
-            <p className="mt-1.5 text-base font-semibold text-foreground">
-              {e.identity}
-            </p>
+            <p className="mt-1.5 text-base font-semibold text-foreground">{e.identity}</p>
             <p className="mt-1 text-sm text-muted-foreground">{e.function}</p>
-            <span
-              aria-hidden="true"
-              className="mt-3 hidden text-xs text-muted-foreground sm:block"
-            >
+            <span aria-hidden="true" className="mt-3 hidden text-xs text-muted-foreground sm:block">
               {i < items.length - 1 ? "↓" : ""}
             </span>
           </li>
@@ -690,9 +654,7 @@ export function CharacterStoryProgression({
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="text-sm font-semibold">
                 {s.story.number != null && (
-                  <span className="mr-2 text-muted-foreground">
-                    Story {s.story.number}
-                  </span>
+                  <span className="mr-2 text-muted-foreground">Story {s.story.number}</span>
                 )}
                 {s.story.title}
               </p>
@@ -861,9 +823,13 @@ export function CharacterQuotes({
               className="text-base italic leading-relaxed text-foreground/95"
               style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
             >
-              <span aria-hidden="true" style={{ color: accent }}>“</span>
+              <span aria-hidden="true" style={{ color: accent }}>
+                “
+              </span>
               {q.quote}
-              <span aria-hidden="true" style={{ color: accent }}>”</span>
+              <span aria-hidden="true" style={{ color: accent }}>
+                ”
+              </span>
             </blockquote>
             {q.context?.trim() && (
               <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -886,16 +852,11 @@ export function CharacterStoryAppearances({ m }: { m: CharacterModel }) {
     <CharacterSection id="story-appearances" title="Story Appearances">
       <ol className="grid gap-3">
         {m.stories.map((s) => (
-          <li
-            key={s.story.id}
-            className="rounded-xl border border-border bg-background/40 p-4"
-          >
+          <li key={s.story.id} className="rounded-xl border border-border bg-background/40 p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="text-sm font-semibold">
                 {s.story.number != null && (
-                  <span className="mr-2 text-muted-foreground">
-                    Story {s.story.number}
-                  </span>
+                  <span className="mr-2 text-muted-foreground">Story {s.story.number}</span>
                 )}
                 {s.story.title}
               </p>
@@ -932,9 +893,19 @@ export function CharacterRelatedLore({ m }: { m: CharacterModel }) {
             <ul className="space-y-1.5 text-sm">
               {m.factions.map((f) => (
                 <li key={f.id}>
-                  {f.name}
-                  {f.role && (
-                    <span className="text-muted-foreground"> — {f.role}</span>
+                  <div>
+                    {f.name}
+                    {f.isSpoiler && (
+                      <span className="ml-2 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-destructive">
+                        Spoiler
+                      </span>
+                    )}
+                  </div>
+                  {f.role && <div className="text-muted-foreground">{f.role}</div>}
+                  {f.description && (
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {f.description}
+                    </p>
                   )}
                 </li>
               ))}
@@ -966,20 +937,13 @@ export type GalleryImage = {
   category?: string | null;
 };
 
-export function CharacterGallery({
-  images,
-}: {
-  images: GalleryImage[] | undefined | null;
-}) {
+export function CharacterGallery({ images }: { images: GalleryImage[] | undefined | null }) {
   if (!images?.length) return null;
   return (
     <CharacterSection id="gallery" title="Gallery">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {images.map((img, i) => (
-          <figure
-            key={i}
-            className="overflow-hidden rounded-xl border border-border bg-muted"
-          >
+          <figure key={i} className="overflow-hidden rounded-xl border border-border bg-muted">
             <img
               src={img.url}
               alt={img.alt}
@@ -987,9 +951,7 @@ export function CharacterGallery({
               loading="lazy"
             />
             {img.category && (
-              <figcaption className="p-2 text-xs text-muted-foreground">
-                {img.category}
-              </figcaption>
+              <figcaption className="p-2 text-xs text-muted-foreground">{img.category}</figcaption>
             )}
           </figure>
         ))}
@@ -1007,8 +969,7 @@ export function CharacterNotFound({ slug }: { slug?: string }) {
       <p className="mt-3 text-sm text-muted-foreground">
         {slug ? (
           <>
-            No canon character exists at{" "}
-            <span className="font-mono">/characters/{slug}</span>.
+            No canon character exists at <span className="font-mono">/characters/{slug}</span>.
           </>
         ) : (
           "That character could not be located in the codex."

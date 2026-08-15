@@ -36,7 +36,7 @@ export const charactersQO = queryOptions({
         `*,
           primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
           character_stories(role, stories(id, slug, number, title)),
-          character_factions(role, factions(id, slug, name)),
+          character_factions(role, description, is_spoiler, factions(id, slug, name)),
           character_powers(notes, power_systems(id, slug, name))`,
       )
       .eq("canon_status", "canon")
@@ -56,7 +56,7 @@ export const characterQO = (slug: string) =>
           `*,
           primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
           character_stories(role, stories(id, slug, number, title)),
-          character_factions(role, factions(id, slug, name)),
+          character_factions(role, description, is_spoiler, factions(id, slug, name)),
           character_powers(notes, power_systems(id, slug, name)),
           character_eras(id, era_label, identity, function_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
           character_story_notes(id, role_label, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
@@ -90,6 +90,8 @@ export type CharacterWithRelations = Tables<"characters"> & {
   character_stories: Array<{ role: string | null; stories: StoryRef | null }>;
   character_factions: Array<{
     role: string | null;
+    description: string | null;
+    is_spoiler: boolean;
     factions: { id: string; slug: string; name: string } | null;
   }>;
   character_powers: Array<{
@@ -271,6 +273,44 @@ export const adminFactionsQO = queryOptions({
     return must(data, error);
   },
 });
+
+export type AdminFactionOption = { id: string; name: string };
+export const adminFactionOptionsQO = queryOptions({
+  queryKey: ["admin", "factions", "options"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("factions")
+      .select("id, name")
+      .eq("canon_status", "canon")
+      .eq("status", "published")
+      .is("archived_at", null)
+      .order("name");
+    return must(data, error) as AdminFactionOption[];
+  },
+});
+
+export type AdminCharacterFaction = {
+  character_id: string;
+  faction_id: string;
+  role: string | null;
+  description: string | null;
+  is_spoiler: boolean;
+  faction: AdminFactionOption | null;
+};
+export const adminCharacterFactionsQO = (characterId: string) =>
+  queryOptions({
+    queryKey: ["admin", "character", characterId, "factions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("character_factions")
+        .select(
+          "character_id, faction_id, role, description, is_spoiler, faction:factions(id, name)",
+        )
+        .eq("character_id", characterId)
+        .order("created_at");
+      return must(data, error) as AdminCharacterFaction[];
+    },
+  });
 
 export const adminLocationsQO = queryOptions({
   queryKey: ["admin", "locations"],

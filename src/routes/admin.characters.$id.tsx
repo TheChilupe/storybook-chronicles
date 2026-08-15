@@ -2,7 +2,9 @@ import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-ro
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
+  adminCharacterFactionsQO,
   adminCharacterQO,
+  adminFactionOptionsQO,
   adminStoriesLiteQO,
   characterQO,
 } from "@/lib/queries";
@@ -49,7 +51,7 @@ const TABS: Array<{ id: Tab; label: string; editable: boolean }> = [
   { id: "powers", label: "Powers", editable: false },
   { id: "progression", label: "Progression", editable: false },
   { id: "story-progression", label: "Story progression", editable: false },
-  { id: "relationships", label: "Relationships", editable: false },
+  { id: "relationships", label: "Relationships", editable: true },
   { id: "key-moments", label: "Key moments", editable: false },
   { id: "quotes", label: "Quotes", editable: false },
   { id: "story-appearances", label: "Story appearances", editable: false },
@@ -110,13 +112,20 @@ function CharacterEditor() {
 
   useEffect(() => {
     if (!dirty) return;
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [dirty]);
 
   if (isLoading || !form || !row) {
-    return <div className="rounded-2xl border border-border bg-card p-8 text-muted-foreground">Loading character…</div>;
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8 text-muted-foreground">
+        Loading character…
+      </div>
+    );
   }
 
   const update = <K extends keyof EditableFields>(k: K, v: EditableFields[K]) => {
@@ -135,10 +144,14 @@ function CharacterEditor() {
   };
 
   const saveCore = async () => {
-    setError(null); setNotice(null); setSaving(true);
+    setError(null);
+    setNotice(null);
+    setSaving(true);
     try {
-      if (!/^[a-z0-9-]+$/.test(form.slug)) throw new Error("Slug must be lowercase letters, numbers, and dashes only.");
-      if (!/^#[0-9A-Fa-f]{6}$/.test(form.accent_color)) throw new Error("Accent color must be a 6-digit hex like #2563eb.");
+      if (!/^[a-z0-9-]+$/.test(form.slug))
+        throw new Error("Slug must be lowercase letters, numbers, and dashes only.");
+      if (!/^#[0-9A-Fa-f]{6}$/.test(form.accent_color))
+        throw new Error("Accent color must be a 6-digit hex like #2563eb.");
       if (!form.name.trim()) throw new Error("Name is required.");
 
       const { data: userRes } = await supabase.auth.getUser();
@@ -174,7 +187,9 @@ function CharacterEditor() {
 
   const setStatus = async (nextStatus: string, confirmText?: string) => {
     if (confirmText && !window.confirm(confirmText)) return;
-    setError(null); setNotice(null); setSaving(true);
+    setError(null);
+    setNotice(null);
+    setSaving(true);
     try {
       const { data: userRes } = await supabase.auth.getUser();
       const { error: e2 } = await supabase
@@ -192,7 +207,12 @@ function CharacterEditor() {
   };
 
   const archive = async () => {
-    if (!window.confirm(`Archive "${row.name}"? It will disappear from the public codex but remain in the database.`)) return;
+    if (
+      !window.confirm(
+        `Archive "${row.name}"? It will disappear from the public codex but remain in the database.`,
+      )
+    )
+      return;
     setSaving(true);
     try {
       const { data: userRes } = await supabase.auth.getUser();
@@ -212,7 +232,10 @@ function CharacterEditor() {
   const unarchive = async () => {
     setSaving(true);
     try {
-      const { error: e2 } = await supabase.from("characters").update({ archived_at: null }).eq("id", id);
+      const { error: e2 } = await supabase
+        .from("characters")
+        .update({ archived_at: null })
+        .eq("id", id);
       if (e2) throw e2;
       await invalidate();
       setNotice("Restored from archive.");
@@ -255,7 +278,8 @@ function CharacterEditor() {
           </Link>
           <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{row.name}</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Last updated {new Date(row.updated_at).toLocaleString()} · status <span className="font-medium">{row.status}</span>
+            Last updated {new Date(row.updated_at).toLocaleString()} · status{" "}
+            <span className="font-medium">{row.status}</span>
             {row.archived_at && <> · archived {new Date(row.archived_at).toLocaleDateString()}</>}
           </p>
         </div>
@@ -286,7 +310,13 @@ function CharacterEditor() {
         <TabBar tab={tab} setTab={setTab} />
         <div className="p-4 sm:p-6">
           {tab === "basics" && (
-            <BasicsForm form={form} update={update} stories={stories} slugChanged={slugChanged} isPublished={isPublished} />
+            <BasicsForm
+              form={form}
+              update={update}
+              stories={stories}
+              slugChanged={slugChanged}
+              isPublished={isPublished}
+            />
           )}
           {tab === "identity" && <IdentityForm form={form} update={update} />}
           {tab === "narrative" && <NarrativeForm form={form} update={update} />}
@@ -317,10 +347,12 @@ function CharacterEditor() {
               onSaveFirst={saveCore}
             />
           )}
+          {tab === "relationships" && (
+            <RelationshipsPanel characterId={id} characterSlug={row.slug} />
+          )}
           {(tab === "powers" ||
             tab === "progression" ||
             tab === "story-progression" ||
-            tab === "relationships" ||
             tab === "key-moments" ||
             tab === "quotes" ||
             tab === "story-appearances") && <ReadOnlyPlaceholder tab={tab} />}
@@ -348,14 +380,20 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
               }`}
             >
               {t.label}
-              {!t.editable && <span className="ml-2 rounded-full bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">Read-only</span>}
+              {!t.editable && (
+                <span className="ml-2 rounded-full bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Read-only
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
       {/* Mobile select */}
       <div className="border-b border-border p-3 md:hidden">
-        <label className="sr-only" htmlFor="tab-select">Section</label>
+        <label className="sr-only" htmlFor="tab-select">
+          Section
+        </label>
         <select
           id="tab-select"
           value={tab}
@@ -374,7 +412,15 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block text-sm">
       <span className="mb-1 block font-medium">{label}</span>
@@ -402,25 +448,61 @@ function BasicsForm({
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Field label="Display name">
-        <input className={inputCls} value={form.name} onChange={(e) => update("name", e.target.value)} />
+        <input
+          className={inputCls}
+          value={form.name}
+          onChange={(e) => update("name", e.target.value)}
+        />
       </Field>
       <Field label="Alias / hero name">
-        <input className={inputCls} value={form.alias} onChange={(e) => update("alias", e.target.value)} />
+        <input
+          className={inputCls}
+          value={form.alias}
+          onChange={(e) => update("alias", e.target.value)}
+        />
       </Field>
-      <Field label="Slug" hint={slugChanged && isPublished ? "⚠ Changing the slug of a published character breaks existing links." : "Lowercase letters, numbers, and dashes only."}>
-        <input className={inputCls} value={form.slug} onChange={(e) => update("slug", e.target.value)} />
+      <Field
+        label="Slug"
+        hint={
+          slugChanged && isPublished
+            ? "⚠ Changing the slug of a published character breaks existing links."
+            : "Lowercase letters, numbers, and dashes only."
+        }
+      >
+        <input
+          className={inputCls}
+          value={form.slug}
+          onChange={(e) => update("slug", e.target.value)}
+        />
       </Field>
       <Field label="Accent color" hint="6-digit hex.">
         <div className="flex items-center gap-2">
-          <input type="color" value={form.accent_color} onChange={(e) => update("accent_color", e.target.value)} className="h-9 w-12 cursor-pointer rounded border border-border bg-background" />
-          <input className={inputCls} value={form.accent_color} onChange={(e) => update("accent_color", e.target.value)} />
+          <input
+            type="color"
+            value={form.accent_color}
+            onChange={(e) => update("accent_color", e.target.value)}
+            className="h-9 w-12 cursor-pointer rounded border border-border bg-background"
+          />
+          <input
+            className={inputCls}
+            value={form.accent_color}
+            onChange={(e) => update("accent_color", e.target.value)}
+          />
         </div>
       </Field>
       <Field label="Eyebrow" hint="Small label above the display name on the hero.">
-        <input className={inputCls} value={form.eyebrow} onChange={(e) => update("eyebrow", e.target.value)} />
+        <input
+          className={inputCls}
+          value={form.eyebrow}
+          onChange={(e) => update("eyebrow", e.target.value)}
+        />
       </Field>
       <Field label="Narrative role">
-        <input className={inputCls} value={form.role} onChange={(e) => update("role", e.target.value)} />
+        <input
+          className={inputCls}
+          value={form.role}
+          onChange={(e) => update("role", e.target.value)}
+        />
       </Field>
       <Field label="Primary story">
         <select
@@ -437,14 +519,22 @@ function BasicsForm({
         </select>
       </Field>
       <Field label="Canon status">
-        <select className={inputCls} value={form.canon_status} onChange={(e) => update("canon_status", e.target.value)}>
+        <select
+          className={inputCls}
+          value={form.canon_status}
+          onChange={(e) => update("canon_status", e.target.value)}
+        >
           <option value="canon">Canon</option>
           <option value="non-canon">Non-canon</option>
         </select>
       </Field>
       <div className="md:col-span-2">
         <Field label="Tagline" hint="One-line pull quote shown near the hero and overview.">
-          <input className={inputCls} value={form.tagline} onChange={(e) => update("tagline", e.target.value)} />
+          <input
+            className={inputCls}
+            value={form.tagline}
+            onChange={(e) => update("tagline", e.target.value)}
+          />
         </Field>
       </div>
     </div>
@@ -460,7 +550,10 @@ function IdentityForm({
 }) {
   return (
     <div className="space-y-4">
-      <Field label="Identity (markdown)" hint="Renders as the 'Character Identity' section. A leading blockquote line becomes a pull quote.">
+      <Field
+        label="Identity (markdown)"
+        hint="Renders as the 'Character Identity' section. A leading blockquote line becomes a pull quote."
+      >
         <textarea
           className={`${inputCls} min-h-[220px] font-mono text-sm leading-6`}
           value={form.identity_md}
@@ -480,14 +573,20 @@ function NarrativeForm({
 }) {
   return (
     <div className="space-y-4">
-      <Field label="Overview (markdown)" hint="Shown as the top 'Overview' section on the public profile.">
+      <Field
+        label="Overview (markdown)"
+        hint="Shown as the top 'Overview' section on the public profile."
+      >
         <textarea
           className={`${inputCls} min-h-[180px] font-mono text-sm leading-6`}
           value={form.canon_summary_md}
           onChange={(e) => update("canon_summary_md", e.target.value)}
         />
       </Field>
-      <Field label="Core conflict (markdown)" hint="Stylized pull-quote section that appears near the top of the profile.">
+      <Field
+        label="Core conflict (markdown)"
+        hint="Stylized pull-quote section that appears near the top of the profile."
+      >
         <textarea
           className={`${inputCls} min-h-[120px] font-mono text-sm leading-6`}
           value={form.core_conflict_md}
@@ -512,6 +611,318 @@ function NarrativeForm({
   );
 }
 
+type AffiliationForm = {
+  faction_id: string;
+  role: string;
+  description: string;
+  is_spoiler: boolean;
+};
+
+const emptyAffiliation: AffiliationForm = {
+  faction_id: "",
+  role: "",
+  description: "",
+  is_spoiler: false,
+};
+
+function RelationshipsPanel({
+  characterId,
+  characterSlug,
+}: {
+  characterId: string;
+  characterSlug: string;
+}) {
+  const qc = useQueryClient();
+  const { data: factions = [] } = useQuery(adminFactionOptionsQO);
+  const { data: affiliations = [], isLoading } = useQuery(adminCharacterFactionsQO(characterId));
+  const [form, setForm] = useState<AffiliationForm | null>(null);
+  const [editingFactionId, setEditingFactionId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const availableFactions = factions.filter(
+    (f) => f.id === editingFactionId || !affiliations.some((a) => a.faction_id === f.id),
+  );
+
+  const closeForm = () => {
+    setForm(null);
+    setEditingFactionId(null);
+    setError(null);
+  };
+
+  const invalidate = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["admin", "character", characterId, "factions"] }),
+      qc.invalidateQueries({ queryKey: ["character", characterSlug] }),
+      qc.invalidateQueries({ queryKey: ["characters"] }),
+    ]);
+  };
+
+  const startAdd = () => {
+    setEditingFactionId(null);
+    setForm({ ...emptyAffiliation, faction_id: availableFactions[0]?.id ?? "" });
+    setError(null);
+    setNotice(null);
+  };
+
+  const startEdit = (affiliation: (typeof affiliations)[number]) => {
+    setEditingFactionId(affiliation.faction_id);
+    setForm({
+      faction_id: affiliation.faction_id,
+      role: affiliation.role ?? "",
+      description: affiliation.description ?? "",
+      is_spoiler: affiliation.is_spoiler,
+    });
+    setError(null);
+    setNotice(null);
+  };
+
+  const save = async () => {
+    if (!form?.faction_id) {
+      setError("Choose a faction.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    const values = {
+      role: form.role.trim() || null,
+      description: form.description.trim() || null,
+      is_spoiler: form.is_spoiler,
+    };
+    try {
+      if (editingFactionId) {
+        const { error: updateError } = await supabase
+          .from("character_factions")
+          .update(values)
+          .eq("character_id", characterId)
+          .eq("faction_id", editingFactionId);
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase.from("character_factions").insert({
+          character_id: characterId,
+          faction_id: form.faction_id,
+          ...values,
+        });
+        if (insertError) throw insertError;
+      }
+      await invalidate();
+      setNotice(editingFactionId ? "Faction affiliation updated." : "Faction affiliation added.");
+      closeForm();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save the faction affiliation.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (factionId: string, factionName: string) => {
+    if (
+      !window.confirm(
+        `Remove the affiliation with “${factionName}”? The faction itself will not be deleted.`,
+      )
+    ) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const { error: deleteError } = await supabase
+        .from("character_factions")
+        .delete()
+        .eq("character_id", characterId)
+        .eq("faction_id", factionId);
+      if (deleteError) throw deleteError;
+      await invalidate();
+      if (editingFactionId === factionId) closeForm();
+      setNotice("Faction affiliation removed.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not remove the faction affiliation.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Relationships
+            </p>
+            <h2 className="mt-1 text-xl font-semibold">Faction Affiliations</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Optional affiliations may represent membership, employment, leadership, contracting,
+              or another creator-defined relationship.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={startAdd}
+            disabled={saving || form !== null || availableFactions.length === 0}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          >
+            + Add faction
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-4">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
+        {notice && (
+          <div className="mt-4">
+            <Banner tone="ok">{notice}</Banner>
+          </div>
+        )}
+
+        {form && (
+          <div className="mt-5 space-y-4 rounded-xl border border-border bg-background/40 p-4 sm:p-5">
+            <h3 className="font-semibold">
+              {editingFactionId ? "Edit faction affiliation" : "Add faction affiliation"}
+            </h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Faction">
+                <select
+                  className={inputCls}
+                  value={form.faction_id}
+                  disabled={Boolean(editingFactionId)}
+                  onChange={(e) => setForm({ ...form, faction_id: e.target.value })}
+                >
+                  <option value="">— Select a faction —</option>
+                  {availableFactions.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field
+                label="Role / relationship label"
+                hint="Examples: Member, Officer, Contractor, Founder."
+              >
+                <input
+                  className={inputCls}
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                />
+              </Field>
+              <div className="md:col-span-2">
+                <Field label="Short description (optional)">
+                  <textarea
+                    className={`${inputCls} min-h-[96px]`}
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">Visibility</legend>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="faction-visibility"
+                      checked={!form.is_spoiler}
+                      onChange={() => setForm({ ...form, is_spoiler: false })}
+                    />
+                    Public
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="faction-visibility"
+                      checked={form.is_spoiler}
+                      onChange={() => setForm({ ...form, is_spoiler: true })}
+                    />
+                    Spoiler
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <ActionBtn onClick={save} disabled={saving} primary>
+                {saving ? "Saving…" : "Save affiliation"}
+              </ActionBtn>
+              <ActionBtn onClick={closeForm} disabled={saving}>
+                Cancel
+              </ActionBtn>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-5 space-y-3">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading faction affiliations…</p>
+          ) : affiliations.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+              No faction affiliations yet.
+            </p>
+          ) : (
+            affiliations.map((affiliation) => (
+              <article
+                key={affiliation.faction_id}
+                className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border bg-background/40 p-4"
+              >
+                <div className="min-w-0">
+                  <h3 className="font-semibold">
+                    {affiliation.faction?.name ?? "Unknown faction"}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {affiliation.role || "No role specified"}
+                  </p>
+                  {affiliation.description && (
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                      {affiliation.description}
+                    </p>
+                  )}
+                  <span
+                    className={`mt-3 inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                      affiliation.is_spoiler
+                        ? "border-destructive/40 bg-destructive/10 text-destructive"
+                        : "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                    }`}
+                  >
+                    {affiliation.is_spoiler ? "Spoiler" : "Public"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <ActionBtn
+                    onClick={() => startEdit(affiliation)}
+                    disabled={saving || form !== null}
+                  >
+                    Edit
+                  </ActionBtn>
+                  <ActionBtn
+                    onClick={() =>
+                      remove(affiliation.faction_id, affiliation.faction?.name ?? "this faction")
+                    }
+                    disabled={saving}
+                    destructive
+                  >
+                    Remove
+                  </ActionBtn>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-dashed border-border bg-background/40 p-5 text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">Other relationships</p>
+        <p className="mt-2">
+          Character and location relationship editors remain read-only and are outside Gate 3A.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 function MediaForm({
   form,
   update,
@@ -529,15 +940,25 @@ function MediaForm({
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function upload(file: File) {
-    setUploading(true); setUploadError(null);
+    setUploading(true);
+    setUploadError(null);
     try {
       const ext = (file.name.split(".").pop() || "png").toLowerCase();
-      const safeSlug = slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "character";
+      const safeSlug =
+        slug
+          .toLowerCase()
+          .replace(/[^a-z0-9-]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "character";
       const path = `characters/${characterId}/${safeSlug}-${Date.now()}.${ext}`;
-      const up = await supabase.storage.from("lore-images").upload(path, file, { upsert: true, contentType: file.type });
+      const up = await supabase.storage
+        .from("lore-images")
+        .upload(path, file, { upsert: true, contentType: file.type });
       if (up.error) throw up.error;
-      const signed = await supabase.storage.from("lore-images").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
-      if (signed.error || !signed.data?.signedUrl) throw signed.error ?? new Error("Failed to sign URL");
+      const signed = await supabase.storage
+        .from("lore-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed.error || !signed.data?.signedUrl)
+        throw signed.error ?? new Error("Failed to sign URL");
       const { error: persistError } = await supabase
         .from("characters")
         .update({ portrait_url: signed.data.signedUrl })
@@ -562,23 +983,37 @@ function MediaForm({
           {form.portrait_url ? (
             <img src={form.portrait_url} alt="" className="h-full w-full object-cover object-top" />
           ) : (
-            <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">No portrait</div>
+            <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
+              No portrait
+            </div>
           )}
         </div>
       </div>
       <div className="space-y-4">
-        <label className={`inline-flex cursor-pointer items-center rounded-md border border-border bg-background px-3 py-2 text-sm hover:border-primary ${uploading ? "pointer-events-none opacity-60" : ""}`}>
+        <label
+          className={`inline-flex cursor-pointer items-center rounded-md border border-border bg-background px-3 py-2 text-sm hover:border-primary ${uploading ? "pointer-events-none opacity-60" : ""}`}
+        >
           {uploading ? "Uploading…" : "Upload new portrait"}
           <input
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void upload(f);
+            }}
           />
         </label>
         {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
-        <Field label="Portrait URL" hint="Set manually if needed. Upload above auto-fills this. Remember to save.">
-          <input className={inputCls} value={form.portrait_url} onChange={(e) => update("portrait_url", e.target.value)} />
+        <Field
+          label="Portrait URL"
+          hint="Set manually if needed. Upload above auto-fills this. Remember to save."
+        >
+          <input
+            className={inputCls}
+            value={form.portrait_url}
+            onChange={(e) => update("portrait_url", e.target.value)}
+          />
         </Field>
         {form.portrait_url && (
           <button
@@ -628,7 +1063,10 @@ function PublishingPanel({
       await onSaveFirst();
     }
     if (missing.length) {
-      if (!window.confirm(`Publish anyway? Missing recommended fields:\n\n• ${missing.join("\n• ")}`)) return;
+      if (
+        !window.confirm(`Publish anyway? Missing recommended fields:\n\n• ${missing.join("\n• ")}`)
+      )
+        return;
     }
     await setStatus("published");
   };
@@ -636,41 +1074,76 @@ function PublishingPanel({
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Current status</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Current status
+        </h2>
         <p className="mt-2 text-lg font-semibold capitalize">{status.replace("_", " ")}</p>
-        {archivedAt && <p className="mt-1 text-sm text-amber-500">Archived on {new Date(archivedAt).toLocaleDateString()}.</p>}
+        {archivedAt && (
+          <p className="mt-1 text-sm text-amber-500">
+            Archived on {new Date(archivedAt).toLocaleDateString()}.
+          </p>
+        )}
         {missing.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Recommended before publishing: <span className="text-foreground">{missing.join(", ")}</span>.
+            Recommended before publishing:{" "}
+            <span className="text-foreground">{missing.join(", ")}</span>.
           </p>
         )}
       </section>
 
       <section className="flex flex-wrap gap-2">
-        <ActionBtn onClick={() => setStatus("draft")} disabled={saving || status === "draft"}>Save as Draft</ActionBtn>
-        <ActionBtn onClick={() => setStatus("needs_review")} disabled={saving || status === "needs_review"}>Mark Needs Review</ActionBtn>
-        <ActionBtn onClick={doPublish} disabled={saving || (status === "published" && !dirty)} primary>Publish</ActionBtn>
+        <ActionBtn onClick={() => setStatus("draft")} disabled={saving || status === "draft"}>
+          Save as Draft
+        </ActionBtn>
+        <ActionBtn
+          onClick={() => setStatus("needs_review")}
+          disabled={saving || status === "needs_review"}
+        >
+          Mark Needs Review
+        </ActionBtn>
+        <ActionBtn
+          onClick={doPublish}
+          disabled={saving || (status === "published" && !dirty)}
+          primary
+        >
+          Publish
+        </ActionBtn>
         {status === "published" && (
-          <ActionBtn onClick={() => setStatus("draft", "Unpublish this character? It will disappear from the public codex.")} disabled={saving}>
+          <ActionBtn
+            onClick={() =>
+              setStatus(
+                "draft",
+                "Unpublish this character? It will disappear from the public codex.",
+              )
+            }
+            disabled={saving}
+          >
             Unpublish
           </ActionBtn>
         )}
       </section>
 
       <section className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-destructive">Danger zone</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-destructive">
+          Danger zone
+        </h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {archivedAt ? (
-            <ActionBtn onClick={unarchive} disabled={saving}>Restore from archive</ActionBtn>
+            <ActionBtn onClick={unarchive} disabled={saving}>
+              Restore from archive
+            </ActionBtn>
           ) : (
-            <ActionBtn onClick={archive} disabled={saving}>Archive character</ActionBtn>
+            <ActionBtn onClick={archive} disabled={saving}>
+              Archive character
+            </ActionBtn>
           )}
           <ActionBtn onClick={hardDelete} disabled={saving} destructive>
             Delete permanently…
           </ActionBtn>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Archive hides the character from public views but keeps all data. Permanent deletion cascades to eras, quotes, key moments, relationships, and story notes.
+          Archive hides the character from public views but keeps all data. Permanent deletion
+          cascades to eras, quotes, key moments, relationships, and story notes.
         </p>
       </section>
     </div>
@@ -713,7 +1186,9 @@ function ReadOnlyPlaceholder({ tab }: { tab: string }) {
     <div className="rounded-xl border border-dashed border-border bg-background/40 p-6 text-sm text-muted-foreground">
       <p className="font-medium capitalize text-foreground">{label}</p>
       <p className="mt-2">
-        This section is read-only in Admin V0.1. The repeatable editors for eras, story notes, key moments, quotes, relationships, and story appearances will ship in V0.2. Existing data continues to render on the public profile.
+        This section is read-only in Admin V0.1. The repeatable editors for eras, story notes, key
+        moments, quotes, relationships, and story appearances will ship in V0.2. Existing data
+        continues to render on the public profile.
       </p>
     </div>
   );
