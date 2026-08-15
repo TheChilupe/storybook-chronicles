@@ -1,5 +1,5 @@
 <#
-  Read-only verification of the canonical character imports through H
+  Read-only verification of the canonical character imports through the Apex hero batch
   against the LOCAL Supabase database.
 
   Run it through npm from Windows PowerShell:
@@ -1173,16 +1173,14 @@ select (
 from public.characters where slug = 'h';
 "@
 
-Test-Assertion 71 "H has no unsupported structured sections or media" @"
-select (
-  c.portrait_url is null
-  and not exists (select 1 from public.character_eras e where e.character_id = c.id)
-  and not exists (select 1 from public.character_story_notes n where n.character_id = c.id)
-  and not exists (select 1 from public.character_key_moments m where m.character_id = c.id)
-  and not exists (select 1 from public.character_quotes q where q.character_id = c.id)
-)::text
-from public.characters c where c.slug = 'h';
-"@
+Test-StaticAssertion 71 "H migration seeded no unsupported structured sections or media" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815100000_import_canonical_h_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noUnsupportedInserts = $text -notmatch '(?i)insert\s+into\s+public\.(character_eras|character_story_notes|character_key_moments|character_quotes)'
+  $portraitStartsEmpty = $text -match '(?i)portrait_url\s*=\s*NULL'
+  return ($noUnsupportedInserts -and $portraitStartsEmpty)
+}
 
 Test-Assertion 72 "H has no auto-created faction, location, or character relationships" @"
 select (
@@ -1204,6 +1202,132 @@ Test-StaticAssertion 73 "H migration is local-only and never writes factions, lo
   return ($noRemote -and $noRelationshipWrites -and $oneCharacterInsert)
 }
 
+Write-Host ""
+Write-Host "  APEX HERO BATCH" -ForegroundColor White
+
+Test-Assertion 74 "Exactly five approved published canon Apex heroes exist" @"
+select (
+  count(*) = 5
+  and count(distinct slug) = 5
+  and bool_and(role = 'Supporting Character')
+  and bool_and(canon_status = 'canon')
+  and bool_and(status = 'published')
+  and bool_and(archived_at is null)
+)::text
+from public.characters
+where slug in ('aegis', 'lifeline', 'prism', 'insight', 'resolve');
+"@
+
+Test-Assertion 75 "Apex hero names and aliases match the approved identities" @"
+select (
+  array_agg(concat_ws('|', slug, name, alias) order by slug) = array[
+    'aegis|Ricky Nolan|Aegis',
+    'insight|Hinata|Insight',
+    'lifeline|Sarah-Lin Bailey|Lifeline',
+    'prism|Claire Fraser|Prism',
+    'resolve|Tyson Miles|Resolve'
+  ]::text[]
+)::text
+from public.characters
+where slug in ('aegis', 'lifeline', 'prism', 'insight', 'resolve');
+"@
+
+Test-Assertion 76 "Every Apex batch character is linked only to Story 1" @"
+select (
+  count(*) = 5
+  and bool_and(c.story_id = s.id and c.primary_story_id = s.id)
+  and bool_and((select count(*) from public.character_stories cs where cs.character_id = c.id) = 1)
+  and bool_and(exists (
+    select 1 from public.character_stories cs
+    where cs.character_id = c.id and cs.story_id = s.id
+  ))
+)::text
+from public.characters c
+cross join public.stories s
+where c.slug in ('aegis', 'lifeline', 'prism', 'insight', 'resolve')
+  and s.slug = 'rush' and s.number = 1;
+"@
+
+Test-Assertion 77 "Aegis retains the exact approved overview and two defensive powers" @"
+select (
+  c.canon_summary_md = 'Aegis is Apex''s Rank 2 hero and one of the organization''s most recognizable public protectors. Specializing in force fields, impact absorption, civilian rescue, and defensive combat, he embodies the reassuring image of a hero who stands between ordinary people and danger. Beneath his noble public persona is a proud, sometimes anxious young man whose need for structure becomes increasingly important as Apex begins to collapse.'
+  and (select array_agg(p.slug order by p.slug) from public.character_powers cp join public.power_systems p on p.id = cp.power_system_id where cp.character_id = c.id)
+      = array['force-field-generation', 'impact-absorption']::text[]
+  and c.identity_md ~* 'younger sister was killed by a stray bullet'
+  and c.spoiler_md ~* 'alias Guardian'
+)::text from public.characters c where c.slug = 'aegis';
+"@
+
+Test-Assertion 78 "Lifeline retains the exact approved overview and three support powers" @"
+select (
+  c.canon_summary_md = 'Lifeline is Apex''s Rank 3 hero, a former music artist whose desire to heal people through song becomes literal after receiving powers through Apex. Gifted with an enormous reserve of healing life force alongside telepathy and emotional communication, she becomes one of the organization''s most valuable support heroes. Her compassion is also her vulnerability: she experiences tremendous guilt when she cannot save someone, and the Purple War eventually forces her to confront the horrifying reality that even extraordinary healing has limits.'
+  and (select array_agg(p.slug order by p.slug) from public.character_powers cp join public.power_systems p on p.id = cp.power_system_id where cp.character_id = c.id)
+      = array['emotional-stabilization', 'healing-life-force-manipulation', 'telepathy']::text[]
+  and c.story_role_md ~* 'not limitless'
+  and c.spoiler_md ~* 'broken arms'
+)::text from public.characters c where c.slug = 'lifeline';
+"@
+
+Test-Assertion 79 "Prism retains the exact approved overview and capture-only power" @"
+select (
+  c.canon_summary_md = 'Prism is Apex''s Rank 5 hero and its hard-light capture specialist, creating restraints, chains, shackles, and cages designed to render dangerous opponents powerless. Bright, proud, steadfast, and openly emotional, she brings a fierce competitive energy to the team and embraces Rush''s tendency to turn training into games. Her role within Apex emphasizes capture and control rather than raw destruction.'
+  and (select array_agg(p.slug order by p.slug) from public.character_powers cp join public.power_systems p on p.id = cp.power_system_id where cp.character_id = c.id)
+      = array['hard-light-constructs']::text[]
+  and concat_ws(' ', c.canon_summary_md, c.identity_md, c.story_role_md) !~* '\m(lasers?|flight)\M'
+  and c.spoiler_md ~* 'dies during the Purple War'
+)::text from public.characters c where c.slug = 'prism';
+"@
+
+Test-Assertion 80 "Insight retains the exact approved overview, unresolved surname, and precognition only" @"
+select (
+  c.canon_summary_md = 'Insight is an Apex hero, tactical specialist, and precognitive martial artist who deliberately avoids the organization''s public Top Five because he values effectiveness and intellectual challenge more than celebrity. Able to see as far as five minutes into the future, he compresses his perception to mere seconds during combat, allowing him to analyze changing futures in real time. Insight becomes a natural intellectual companion to H and Hawks and teaches Rush the rapid situational analysis that later becomes essential to surviving enemies far beyond ordinary human capability.'
+  and c.name = 'Hinata'
+  and c.identity_md ~* 'Surname:\*\* Unresolved'
+  and (select array_agg(p.slug order by p.slug) from public.character_powers cp join public.power_systems p on p.id = cp.power_system_id where cp.character_id = c.id)
+      = array['precognition']::text[]
+  and c.story_role_md ~* 'Quick Thought'
+)::text from public.characters c where c.slug = 'insight';
+"@
+
+Test-Assertion 81 "Resolve retains the exact approved overview and bounded electrical power" @"
+select (
+  c.canon_summary_md = 'Resolve is an Apex hero and electrical powerhouse whose resentment toward Rush masks several legitimate concerns about fame, institutional favoritism, and the danger of elevating an extraordinarily powerful but poorly understood young hero too quickly. Jealous, proud, and frequently abrasive toward Rush, Resolve never becomes his friend or admirer. Yet when the Purple War strips away rankings and celebrity, Resolve ultimately proves his heroism not through recognition but through protecting ordinary citizens.'
+  and (select array_agg(p.slug order by p.slug) from public.character_powers cp join public.power_systems p on p.id = cp.power_system_id where cp.character_id = c.id)
+      = array['electricity-generation-and-emission']::text[]
+  and c.identity_md ~* 'his perspective, not an objective conclusion'
+  and c.spoiler_md ~* 'exact mechanism of his death remains unresolved'
+)::text from public.characters c where c.slug = 'resolve';
+"@
+
+Test-Assertion 82 "Purple War deaths and later consequences remain spoiler-controlled" @"
+select bool_and(
+  concat_ws(' ', canon_summary_md, identity_md, story_role_md, core_conflict_md, tagline, eyebrow)
+    !~* 'dies during the Purple War|dies protecting|broken arms|agoraphobia|alias Guardian'
+  and spoiler_md ~* 'Purple War'
+)::text
+from public.characters
+where slug in ('aegis', 'lifeline', 'prism', 'insight', 'resolve');
+"@
+
+Test-StaticAssertion 83 "Apex hero migration seeds no unsupported sections, media, affiliations, or relationships" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815110000_import_canonical_apex_heroes.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noUnsupportedInserts = $text -notmatch '(?i)insert\s+into\s+public\.(character_eras|character_story_notes|character_key_moments|character_quotes)'
+  $noRelationshipWrites = $text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.(factions|worlds|character_factions|character_worlds|character_relationships)'
+  $portraitsEmpty = ([regex]::Matches($text, '(?i)portrait_url\s*=\s*NULL')).Count -eq 5
+  return ($noUnsupportedInserts -and $noRelationshipWrites -and $portraitsEmpty)
+}
+
+Test-StaticAssertion 84 "Apex hero batch migration is local-only and creates exactly five character candidates" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815110000_import_canonical_apex_heroes.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noRemote = $text -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
+  $fiveCharacterInserts = ([regex]::Matches($text, '(?i)insert\s+into\s+public\.characters')).Count -eq 5
+  return ($noRemote -and $fiveCharacterInserts)
+}
+
 # --- Summary ------------------------------------------------------------------
 # The @() guards below stop PowerShell collapsing a single-item filter result to
 # a scalar, which would leave .Count empty in the summary line. $Assertions is a
@@ -1219,7 +1343,7 @@ Write-Host ("-" * 64) -ForegroundColor DarkGray
 Write-Host ("  EVIDENCE  {0} from the live local database, {1} from static migration inspection" -f $dbCount, $staticCount) -ForegroundColor Gray
 if ($failed -eq 0) {
   Write-Host ("  RESULT   {0} of {1} assertions passed, {2} failed" -f $passed, $total, $failed) -ForegroundColor Green
-  Write-Host "           Canonical character imports through H verified cleanly." -ForegroundColor Gray
+  Write-Host "           Canonical character imports through the Apex hero batch verified cleanly." -ForegroundColor Gray
   Write-Host "           Nothing was modified - every query was read-only." -ForegroundColor Gray
   Write-Host ("-" * 64) -ForegroundColor DarkGray
   Write-Host ""
