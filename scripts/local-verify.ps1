@@ -1,5 +1,5 @@
 <#
-  Read-only verification of the canonical character imports through Jacob
+  Read-only verification of the canonical character imports through Double X
   against the LOCAL Supabase database.
 
   Run it through npm from Windows PowerShell:
@@ -964,6 +964,117 @@ Test-StaticAssertion 55 "Foundation migration never writes character-faction or 
   return ($text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.character_(factions|worlds)')
 }
 
+Write-Host ""
+Write-Host "  DOUBLE X / DX" -ForegroundColor White
+
+Test-Assertion 56 "Exactly one published canon Double X exists with the approved identity" @"
+select (
+  count(*) = 1
+  and min(name) = 'Double X'
+  and min(alias) = 'DX'
+  and min(role) = 'Major Antagonist'
+  and min(canon_status) = 'canon'
+  and min(status) = 'published'
+  and bool_and(archived_at is null)
+)::text
+from public.characters
+where lower(trim(slug)) in ('double-x', 'doublex', 'dx')
+   or lower(trim(name)) in ('double x', 'double-x', 'dx')
+   or lower(trim(coalesce(alias, ''))) in ('double x', 'double-x', 'dx');
+"@
+
+Test-Assertion 57 "Double X retains the creator-approved newer characterization" @"
+select (
+  canon_summary_md ~* 'failed attempt to manufacture the world''s first superhero'
+  and canon_summary_md ~* 'Rush become a hero through nothing more than power, audacity, and belief in himself'
+  and canon_summary_md ~* 'world''s first supervillain'
+  and canon_summary_md ~* 'deliberate trial'
+  and canon_summary_md ~* 'regeneration teaches Rush how easy lethal force can become'
+)::text
+from public.characters where slug = 'double-x';
+"@
+
+Test-Assertion 58 "Double X is linked only to Story 1" @"
+select (
+  c.story_id = s.id
+  and c.primary_story_id = s.id
+  and (select count(*) from public.character_stories cs where cs.character_id = c.id) = 1
+  and exists (
+    select 1 from public.character_stories cs
+    where cs.character_id = c.id and cs.story_id = s.id
+  )
+)::text
+from public.characters c
+cross join public.stories s
+where c.slug = 'double-x' and s.slug = 'rush' and s.number = 1;
+"@
+
+Test-Assertion 59 "Double X has exactly the three approved non-duplicated power links" @"
+select (
+  (select count(*) from public.character_powers cp where cp.character_id = c.id) = 3
+  and (select count(distinct cp.power_system_id) from public.character_powers cp where cp.character_id = c.id) = 3
+  and (
+    select array_agg(p.slug order by p.slug)
+    from public.character_powers cp
+    join public.power_systems p on p.id = cp.power_system_id
+    where cp.character_id = c.id
+  ) = array['elite-combat-training', 'enhanced-physical-abilities', 'regenerative-healing-factor']::text[]
+)::text
+from public.characters c where c.slug = 'double-x';
+"@
+
+Test-Assertion 60 "Healing Blood and DNA Overwrite remain spoiler-controlled" @"
+with x as (
+  select
+    concat_ws(' ', c.canon_summary_md, c.identity_md, c.story_role_md,
+                   c.core_conflict_md, c.tagline, c.eyebrow,
+                   string_agg(concat_ws(' ', p.summary_md, cp.notes), ' ')) as public_text,
+    concat_ws(' ', c.spoiler_md, string_agg(p.spoiler_md, ' ')) as spoiler_text
+  from public.characters c
+  left join public.character_powers cp on cp.character_id = c.id
+  left join public.power_systems p on p.id = cp.power_system_id
+  where c.slug = 'double-x'
+  group by c.id
+)
+select (
+  public_text !~* 'healing blood|dna overwrite|blood can rapidly heal|transfer mania'
+  and spoiler_text ~* 'blood has regenerative properties|blood can rapidly heal'
+  and spoiler_text ~* 'dna interference|dna overwrite'
+  and spoiler_text ~* 'mania'
+)::text from x;
+"@
+
+Test-Assertion 61 "Double X has no unsupported structured sections or media" @"
+select (
+  c.portrait_url is null
+  and not exists (select 1 from public.character_eras e where e.character_id = c.id)
+  and not exists (select 1 from public.character_story_notes n where n.character_id = c.id)
+  and not exists (select 1 from public.character_key_moments m where m.character_id = c.id)
+  and not exists (select 1 from public.character_quotes q where q.character_id = c.id)
+)::text
+from public.characters c where c.slug = 'double-x';
+"@
+
+Test-Assertion 62 "Double X has no auto-created faction, location, or character relationships" @"
+select (
+  not exists (select 1 from public.character_factions x where x.character_id = c.id)
+  and not exists (select 1 from public.character_worlds x where x.character_id = c.id)
+  and not exists (select 1 from public.character_relationships x where x.character_id = c.id)
+  and not exists (select 1 from public.character_relationships x where x.related_character_id = c.id)
+)::text
+from public.characters c where c.slug = 'double-x';
+"@
+
+Test-StaticAssertion 63 "Double X migration is local-only and never writes factions, locations, or relationships" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260815090000_import_canonical_double_x_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noRemote = $text -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
+  $noRelationshipWrites = $text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.(factions|worlds|character_factions|character_worlds|character_relationships)'
+  $oneCharacterInsert = ([regex]::Matches($text, '(?i)insert\s+into\s+public\.characters')).Count -eq 1
+  return ($noRemote -and $noRelationshipWrites -and $oneCharacterInsert)
+}
+
 # --- Summary ------------------------------------------------------------------
 # The @() guards below stop PowerShell collapsing a single-item filter result to
 # a scalar, which would leave .Count empty in the summary line. $Assertions is a
@@ -979,7 +1090,7 @@ Write-Host ("-" * 64) -ForegroundColor DarkGray
 Write-Host ("  EVIDENCE  {0} from the live local database, {1} from static migration inspection" -f $dbCount, $staticCount) -ForegroundColor Gray
 if ($failed -eq 0) {
   Write-Host ("  RESULT   {0} of {1} assertions passed, {2} failed" -f $passed, $total, $failed) -ForegroundColor Green
-  Write-Host "           Canonical character imports through Jacob verified cleanly." -ForegroundColor Gray
+  Write-Host "           Canonical character imports through Double X verified cleanly." -ForegroundColor Gray
   Write-Host "           Nothing was modified - every query was read-only." -ForegroundColor Gray
   Write-Host ("-" * 64) -ForegroundColor DarkGray
   Write-Host ""
