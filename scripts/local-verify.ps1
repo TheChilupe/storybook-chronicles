@@ -1,5 +1,5 @@
 <#
-  Read-only verification of the canonical character imports through the Apex hero batch
+  Read-only verification of the canonical character imports through the final Story 1 roster
   against the LOCAL Supabase database.
 
   Run it through npm from Windows PowerShell:
@@ -652,12 +652,9 @@ select (
 from public.characters c where c.slug = 'caleb-cross';
 "@
 
-Test-Assertion 27 "No unapproved Batch 01 character after Jacob has been introduced" @"
-select (count(*) = 0)::text
-from public.characters
-where slug in ('detective-naomi-carter', 'naomi-carter',
-               'ren-hayashi', 'sideline');
-"@
+Test-StaticAssertion 27 "Caleb migration introduced no later Batch 01 character" {
+  return ($CalebMigrationText -notmatch "(?i)values\s*\([^\)]*'(ren-hayashi|sideline|naomi-carter|detective-naomi-carter)'")
+}
 
 Test-StaticAssertion 28 "Caleb's migration is scoped to Caleb, Judgment Shot, Story 1, and Rush" {
   $doesNotNameLaterBatchProfiles = $CalebMigrationText -notmatch '(?i)\bRacer\b|\bJacob\b|\bNaomi\b|\bRen Hayashi\b|\bSideline\b'
@@ -771,12 +768,12 @@ select (
 from public.characters where slug = 'racer';
 "@
 
-Test-Assertion 37 "No later Batch 01 character after Jacob has been introduced" @"
-select (count(*) = 0)::text
-from public.characters
-where slug in ('detective-naomi-carter', 'naomi-carter',
-               'ren-hayashi', 'sideline');
-"@
+Test-StaticAssertion 37 "Racer migration introduced no later Batch 01 character" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260811090000_import_canonical_racer_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  return ($text -notmatch "(?i)values\s*\([^\)]*'(ren-hayashi|sideline|naomi-carter|detective-naomi-carter)'")
+}
 
 Test-StaticAssertion 38 "Racer's permanent concept-art file exists in the project" {
   $portrait = Join-Path (Join-Path (Join-Path $repoRoot 'public') 'images\characters') 'racer-concept.png'
@@ -891,12 +888,14 @@ select (
 from public.characters where slug = 'jacob-reeves';
 "@
 
-Test-Assertion 46 "Naomi and Ren were not introduced by the Jacob-only migration" @"
-select (count(*) = 0)::text
-from public.characters
-where slug in ('detective-naomi-carter', 'naomi-carter',
-               'ren-hayashi', 'sideline');
-"@
+Test-StaticAssertion 46 "Jacob-only migration introduced neither Naomi nor Ren" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260811180000_import_canonical_jacob_reeves_profile.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $characterInserts = [regex]::Matches($text, '(?i)insert\s+into\s+public\.characters').Count -eq 1
+  $noRenOrNaomiInsert = $text -notmatch "(?i)values\s*\([^\)]*'(ren-hayashi|sideline|naomi-carter|detective-naomi-carter)'"
+  return ($characterInserts -and $noRenOrNaomiInsert)
+}
 
 Test-StaticAssertion 47 "Jacob's migration creates no Naomi, Ren, LCPD, or remote records" {
   $jacobMigration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260811180000_import_canonical_jacob_reeves_profile.sql'
@@ -1328,6 +1327,120 @@ Test-StaticAssertion 84 "Apex hero batch migration is local-only and creates exa
   return ($noRemote -and $fiveCharacterInserts)
 }
 
+Write-Host ""
+Write-Host "  FINAL STORY 1 ROSTER" -ForegroundColor White
+
+Test-Assertion 85 "Exactly nine approved final-roster characters exist as published canon Story 1 records" @"
+select (
+  count(*) = 9 and count(distinct c.slug) = 9
+  and bool_and(c.status = 'published' and c.canon_status = 'canon' and c.archived_at is null)
+  and bool_and(c.story_id = s.id and c.primary_story_id = s.id)
+  and bool_and((select count(*) from public.character_stories cs where cs.character_id=c.id) = 1)
+)::text
+from public.characters c cross join public.stories s
+where c.slug in ('death-cloak','dread','karim-al-hassan','ren-hayashi','bluevian-miles','tommy-malcolm','m-malcolm','ultra','purple-man')
+  and s.slug='rush' and s.number=1;
+"@
+
+Test-Assertion 86 "Final-roster canonical names and aliases resolve without retired-name duplicates" @"
+select (
+  array_agg(concat_ws('|',slug,name,coalesce(alias,'')) order by slug) = array[
+    'bluevian-miles|Bluevian Miles|Blue','death-cloak|Death Cloak|','dread|Haymitch Graunt|Dread',
+    'karim-al-hassan|Karim Al-Hassan|','m-malcolm|M. Malcolm|The Master','purple-man|Purple Man|',
+    'ren-hayashi|Ren Hayashi|Sideline','tommy-malcolm|Tommy Malcolm|Hawks','ultra|Ultra|'
+  ]::text[]
+)::text
+from public.characters where slug in ('death-cloak','dread','karim-al-hassan','ren-hayashi','bluevian-miles','tommy-malcolm','m-malcolm','ultra','purple-man');
+"@
+
+Test-Assertion 87 "Retired Elias Grant, Sightline, Deadlock, Dominion, and Eon identities were not created" @"
+select (count(*) = 0)::text from public.characters
+where lower(trim(slug)) in ('elias-grant','sightline','deadlock','dominion','eon')
+   or lower(trim(name)) in ('elias grant','sightline','deadlock','dominion','eon')
+   or lower(trim(coalesce(alias,''))) in ('elias grant','sightline','deadlock','dominion','eon');
+"@
+
+Test-Assertion 88 "Final-roster roles preserve the approved free-text classifications" @"
+select bool_and(role = expected_role)::text
+from public.characters c
+join (values
+ ('death-cloak','Villain'),('dread','Villain / Later Redeemed Supporting Character'),
+ ('karim-al-hassan','Supporting Character'),('ren-hayashi','Villain / Mercenary'),
+ ('bluevian-miles','Major Antagonist / Tragic Rival'),
+ ('tommy-malcolm','Supporting Character / Vigilante / Investigator'),
+ ('m-malcolm','Supporting Character / Political Leader / Hidden Guardian'),
+ ('ultra','Supporting Character / Independent Hero / Global Protector'),
+ ('purple-man','Major Antagonist / Catastrophic Threat')
+) expected(slug,expected_role) on expected.slug=c.slug;
+"@
+
+Test-Assertion 89 "Each powered final-roster character has exactly its approved bounded power and Karim has none" @"
+select (
+  (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='death-cloak'))=array['umbra-manipulation']::text[]
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='dread'))=array['psychic-fear-manipulation']::text[]
+  and not exists(select 1 from character_powers where character_id=(select id from characters where slug='karim-al-hassan'))
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='ren-hayashi'))=array['limited-tactile-telekinesis']::text[]
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='bluevian-miles'))=array['vector-manipulation']::text[]
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='tommy-malcolm'))=array['wind-atmospheric-boundary-manipulation']::text[]
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='m-malcolm'))=array['command']::text[]
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='ultra'))=array['natural-superhuman-physiology']::text[]
+  and (select array_agg(p.slug) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=(select id from characters where slug='purple-man'))=array['space-time-motion-authority']::text[]
+)::text;
+"@
+
+Test-Assertion 90 "Death Cloak is the inherited Umbra leader and Apex team threat with light and petrification limits" @"
+select (
+  canon_summary_md ~* 'masked leader' and identity_md ~* 'inherited mantle'
+  and identity_md ~* 'outside identifier' and story_role_md ~* 'Apex team threat'
+  and (select concat_ws(' ',p.summary_md,p.spoiler_md) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=c.id) ~* 'sustained illumination'
+  and (select concat_ws(' ',p.summary_md,p.spoiler_md) from character_powers cp join power_systems p on p.id=cp.power_system_id where cp.character_id=c.id) ~* 'petrif'
+)::text from characters c where slug='death-cloak';
+"@
+
+Test-Assertion 91 "Dread contains Haymitch canon, Companion context, redemption spoilers, and zero Elias lore" @"
+select (
+  name='Haymitch Graunt' and identity_md ~* 'abandoned child' and identity_md ~* 'emotional intelligence'
+  and story_role_md ~* 'Companion' and spoiler_md ~* 'Purple War and Redemption'
+  and spoiler_md ~* 'Lifeline' and concat_ws(' ',canon_summary_md,identity_md,story_role_md,core_conflict_md,spoiler_md) !~* 'Elias Grant|clinical psychologist|meta-fiction|Dreamer|Walker-realm'
+)::text from characters where slug='dread';
+"@
+
+Test-Assertion 92 "Karim, Ren, and Blue retain their approved Story 1 functions and spoiler boundaries" @"
+select (
+  (select canon_summary_md ~* 'operational leader' and spoiler_md ~* 'Department Zero' and spoiler_md ~* 'permanently injured' from characters where slug='karim-al-hassan')
+  and (select alias='Sideline' and canon_summary_md ~* 'older brother' and spoiler_md ~* 'dies protecting Rina' from characters where slug='ren-hayashi')
+  and (select identity_md ~* 'severe burns' and spoiler_md ~* 'Stackston' and spoiler_md ~* 'identifies him as Talon' from characters where slug='bluevian-miles')
+)::text;
+"@
+
+Test-Assertion 93 "Tommy, Malcolm, Ultra, and Purple Man retain bounded Phase 1 canon" @"
+select (
+  (select canon_summary_md ~* 'complicated friendship' and spoiler_md ~* 'Atmospheric Boundary' from characters where slug='tommy-malcolm')
+  and (select story_role_md ~* 'Adam' and story_role_md ~* 'political' and spoiler_md ~* 'ancient Omega' and spoiler_md ~* 'mind control' from characters where slug='m-malcolm')
+  and (select identity_md ~* 'Late 30s' and identity_md ~* '6''5' and canon_summary_md ~* 'classic superhero ideal' from characters where slug='ultra')
+  and (select canon_summary_md !~* '\mEos\M' and spoiler_md ~* '\mEos\M' and spoiler_md !~* '\mEon\M' and spoiler_md ~* 'Speed Realm' from characters where slug='purple-man')
+)::text;
+"@
+
+Test-StaticAssertion 94 "Final-roster migration creates no media, structured lore, affiliations, locations, relationships, or factions" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260816100000_import_final_story_one_roster.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noUnsupportedInserts = $text -notmatch '(?i)insert\s+into\s+public\.(character_eras|character_story_notes|character_key_moments|character_quotes)'
+  $noForbiddenWrites = $text -notmatch '(?i)(insert|update|delete)\s+(into\s+|from\s+)?public\.(factions|worlds|character_factions|character_worlds|character_relationships)'
+  $portraitsEmpty = ([regex]::Matches($text,'(?i)portrait_url\s*=\s*NULL')).Count -eq 9
+  return ($noUnsupportedInserts -and $noForbiddenWrites -and $portraitsEmpty)
+}
+
+Test-StaticAssertion 95 "Final-roster migration is local-only and creates exactly nine guarded character candidates" {
+  $migration = Join-Path (Join-Path (Join-Path $repoRoot 'supabase') 'migrations') '20260816100000_import_final_story_one_roster.sql'
+  if (-not (Test-Path -LiteralPath $migration)) { return $false }
+  $text = Get-Content -LiteralPath $migration -Raw
+  $noRemote = $text -notmatch '(?i)supabase\s+db\s+push|postgres(?:ql)?://|project[_ -]?ref'
+  $nineInserts = ([regex]::Matches($text,'(?i)insert\s+into\s+public\.characters')).Count -eq 9
+  return ($noRemote -and $nineInserts)
+}
+
 # --- Summary ------------------------------------------------------------------
 # The @() guards below stop PowerShell collapsing a single-item filter result to
 # a scalar, which would leave .Count empty in the summary line. $Assertions is a
@@ -1343,7 +1456,7 @@ Write-Host ("-" * 64) -ForegroundColor DarkGray
 Write-Host ("  EVIDENCE  {0} from the live local database, {1} from static migration inspection" -f $dbCount, $staticCount) -ForegroundColor Gray
 if ($failed -eq 0) {
   Write-Host ("  RESULT   {0} of {1} assertions passed, {2} failed" -f $passed, $total, $failed) -ForegroundColor Green
-  Write-Host "           Canonical character imports through the Apex hero batch verified cleanly." -ForegroundColor Gray
+  Write-Host "           Canonical character imports through the final Story 1 roster verified cleanly." -ForegroundColor Gray
   Write-Host "           Nothing was modified - every query was read-only." -ForegroundColor Gray
   Write-Host ("-" * 64) -ForegroundColor DarkGray
   Write-Host ""
