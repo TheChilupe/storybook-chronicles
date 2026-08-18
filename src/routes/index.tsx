@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
-import cloudBg from "@/assets/main-cloud-bg.jpg";
+import skyBg from "@/assets/homepage-sky-bg.png";
 import logo from "@/assets/logo-white.png";
 
 export const Route = createFileRoute("/")({
@@ -61,11 +61,10 @@ function Index() {
 
       {/* Hero */}
       <section
-        className="relative overflow-hidden px-6 py-24 sm:py-32"
+        className="relative overflow-hidden bg-[position:center_54%] px-6 py-24 sm:bg-[position:center_57%] sm:py-32 lg:bg-[position:center_62%]"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(11,15,23,0.55), rgba(11,15,23,0.9) 80%, var(--color-background)), url(${cloudBg})`,
+          backgroundImage: `linear-gradient(to bottom, rgba(11,15,23,0.55), rgba(11,15,23,0.9) 80%, var(--color-background)), url(${skyBg})`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
         }}
       >
         <div
