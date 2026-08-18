@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { z } from "zod";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { charactersQO } from "@/lib/queries";
 import { toCharacterModel } from "@/lib/character-model";
 import { EntityPage } from "@/components/entity-page";
@@ -11,12 +10,12 @@ import { CharacterCard } from "@/components/character-card";
 import { useCharacterSearch } from "@/hooks/use-character-search";
 
 const searchSchema = z.object({
-  search: fallback(z.string(), "").default(""),
+  search: z.string().catch("").default(""),
 });
 
 export const Route = createFileRoute("/characters/")({
   head: () => ({ meta: [{ title: "Characters — Storybook Codex" }] }),
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: searchSchema,
   component: CharactersIndex,
 });
 

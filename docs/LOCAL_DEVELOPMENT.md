@@ -25,15 +25,10 @@ The scripts fetch a **version-pinned** CLI on demand via `npx --yes supabase@2.1
 Nothing is installed globally. If a project-local `node_modules/.bin/supabase` ever
 exists, the scripts prefer it automatically.
 
-> **Do not run `npm install` right now.** It currently fails with an `ERESOLVE`
-> error: `@tanstack/zod-adapter@1.167.0` requires peer `zod@^3.23.8`, but the project
-> uses `zod@^4.4.3`, and no newer `zod-adapter` accepts zod 4. This is a pre-existing
-> dependency-health issue, entirely separate from local Supabase startup, and it is
-> tracked as its own piece of work. The `node_modules` directory already on disk is
-> what the app builds against.
->
-> Do **not** work around it with `--legacy-peer-deps` or `--force` — that rewrites the
-> whole dependency tree and can break a currently-working build.
+> `npm install` works normally. It previously failed with an `ERESOLVE` error, because
+> `@tanstack/zod-adapter@1.167.0` required peer `zod@^3.23.8` while the project uses
+> `zod@^4.4.3`. That adapter has been removed — TanStack Router accepts a Zod v4 schema
+> directly as a `validateSearch` value, so no adapter is needed.
 
 **4. You never create Docker containers yourself.**
 
