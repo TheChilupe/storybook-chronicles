@@ -18,7 +18,6 @@ import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as PowerSystemsRouteImport } from './routes/power-systems'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LocationsRouteImport } from './routes/locations'
 import { Route as FactionsRouteImport } from './routes/factions'
@@ -33,8 +32,6 @@ import { Route as StorybookChroniclesTimelineRouteImport } from './routes/storyb
 import { Route as StorybookChroniclesDevelopmentProcessRouteImport } from './routes/storybook-chronicles.development-process'
 import { Route as StoriesSlugRouteImport } from './routes/stories.$slug'
 import { Route as CharactersSlugRouteImport } from './routes/characters.$slug'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AdminLocationsIndexRouteImport } from './routes/admin.locations.index'
 import { Route as AdminFactionsIndexRouteImport } from './routes/admin.factions.index'
 import { Route as AdminCharactersIndexRouteImport } from './routes/admin.characters.index'
@@ -44,8 +41,6 @@ import { Route as AdminFactionsNewRouteImport } from './routes/admin.factions.ne
 import { Route as AdminFactionsIdRouteImport } from './routes/admin.factions.$id'
 import { Route as AdminCharactersNewRouteImport } from './routes/admin.characters.new'
 import { Route as AdminCharactersIdRouteImport } from './routes/admin.characters.$id'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const WorldsRoute = WorldsRouteImport.update({
   id: '/worlds',
@@ -90,11 +85,6 @@ const PowerSystemsRoute = PowerSystemsRouteImport.update({
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -170,18 +160,6 @@ const CharactersSlugRoute = CharactersSlugRouteImport.update({
   path: '/characters/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AdminLocationsIndexRoute = AdminLocationsIndexRouteImport.update({
   id: '/locations/',
   path: '/locations/',
@@ -227,17 +205,6 @@ const AdminCharactersIdRoute = AdminCharactersIdRouteImport.update({
   path: '/characters/$id',
   getParentRoute: () => AdminRoute,
 } as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -247,7 +214,6 @@ export interface FileRoutesByFullPath {
   '/factions': typeof FactionsRoute
   '/locations': typeof LocationsRoute
   '/login': typeof LoginRoute
-  '/mcp': typeof McpRoute
   '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
@@ -257,8 +223,6 @@ export interface FileRoutesByFullPath {
   '/stories': typeof StoriesRouteWithChildren
   '/storybook-chronicles': typeof StorybookChroniclesRouteWithChildren
   '/worlds': typeof WorldsRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/characters/$slug': typeof CharactersSlugRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
@@ -266,8 +230,6 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/new': typeof AdminCharactersNewRoute
   '/admin/factions/$id': typeof AdminFactionsIdRoute
@@ -285,7 +247,6 @@ export interface FileRoutesByTo {
   '/factions': typeof FactionsRoute
   '/locations': typeof LocationsRoute
   '/login': typeof LoginRoute
-  '/mcp': typeof McpRoute
   '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
@@ -294,8 +255,6 @@ export interface FileRoutesByTo {
   '/spoiler-notes': typeof SpoilerNotesRoute
   '/stories': typeof StoriesRouteWithChildren
   '/worlds': typeof WorldsRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/characters/$slug': typeof CharactersSlugRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
@@ -303,8 +262,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/characters': typeof CharactersIndexRoute
   '/storybook-chronicles': typeof StorybookChroniclesIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/new': typeof AdminCharactersNewRoute
   '/admin/factions/$id': typeof AdminFactionsIdRoute
@@ -324,7 +281,6 @@ export interface FileRoutesById {
   '/factions': typeof FactionsRoute
   '/locations': typeof LocationsRoute
   '/login': typeof LoginRoute
-  '/mcp': typeof McpRoute
   '/portfolio': typeof PortfolioRoute
   '/power-systems': typeof PowerSystemsRoute
   '/reset': typeof ResetRoute
@@ -334,8 +290,6 @@ export interface FileRoutesById {
   '/stories': typeof StoriesRouteWithChildren
   '/storybook-chronicles': typeof StorybookChroniclesRouteWithChildren
   '/worlds': typeof WorldsRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/characters/$slug': typeof CharactersSlugRoute
   '/stories/$slug': typeof StoriesSlugRoute
   '/storybook-chronicles/development-process': typeof StorybookChroniclesDevelopmentProcessRoute
@@ -343,8 +297,6 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/characters/': typeof CharactersIndexRoute
   '/storybook-chronicles/': typeof StorybookChroniclesIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/characters/$id': typeof AdminCharactersIdRoute
   '/admin/characters/new': typeof AdminCharactersNewRoute
   '/admin/factions/$id': typeof AdminFactionsIdRoute
@@ -365,7 +317,6 @@ export interface FileRouteTypes {
     | '/factions'
     | '/locations'
     | '/login'
-    | '/mcp'
     | '/portfolio'
     | '/power-systems'
     | '/reset'
@@ -375,8 +326,6 @@ export interface FileRouteTypes {
     | '/stories'
     | '/storybook-chronicles'
     | '/worlds'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/characters/$slug'
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
@@ -384,8 +333,6 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/characters/'
     | '/storybook-chronicles/'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/admin/characters/$id'
     | '/admin/characters/new'
     | '/admin/factions/$id'
@@ -403,7 +350,6 @@ export interface FileRouteTypes {
     | '/factions'
     | '/locations'
     | '/login'
-    | '/mcp'
     | '/portfolio'
     | '/power-systems'
     | '/reset'
@@ -412,8 +358,6 @@ export interface FileRouteTypes {
     | '/spoiler-notes'
     | '/stories'
     | '/worlds'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/characters/$slug'
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
@@ -421,8 +365,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/characters'
     | '/storybook-chronicles'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/admin/characters/$id'
     | '/admin/characters/new'
     | '/admin/factions/$id'
@@ -441,7 +383,6 @@ export interface FileRouteTypes {
     | '/factions'
     | '/locations'
     | '/login'
-    | '/mcp'
     | '/portfolio'
     | '/power-systems'
     | '/reset'
@@ -451,8 +392,6 @@ export interface FileRouteTypes {
     | '/stories'
     | '/storybook-chronicles'
     | '/worlds'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/characters/$slug'
     | '/stories/$slug'
     | '/storybook-chronicles/development-process'
@@ -460,8 +399,6 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/characters/'
     | '/storybook-chronicles/'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/admin/characters/$id'
     | '/admin/characters/new'
     | '/admin/factions/$id'
@@ -481,7 +418,6 @@ export interface RootRouteChildren {
   FactionsRoute: typeof FactionsRoute
   LocationsRoute: typeof LocationsRoute
   LoginRoute: typeof LoginRoute
-  McpRoute: typeof McpRoute
   PortfolioRoute: typeof PortfolioRoute
   PowerSystemsRoute: typeof PowerSystemsRoute
   ResetRoute: typeof ResetRoute
@@ -491,12 +427,8 @@ export interface RootRouteChildren {
   StoriesRoute: typeof StoriesRouteWithChildren
   StorybookChroniclesRoute: typeof StorybookChroniclesRouteWithChildren
   WorldsRoute: typeof WorldsRoute
-  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
-  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   CharactersSlugRoute: typeof CharactersSlugRoute
   CharactersIndexRoute: typeof CharactersIndexRoute
-  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
-  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -562,13 +494,6 @@ declare module '@tanstack/react-router' {
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -669,20 +594,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CharactersSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/locations/': {
       id: '/admin/locations/'
       path: '/locations'
@@ -745,20 +656,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/characters/$id'
       preLoaderRoute: typeof AdminCharactersIdRouteImport
       parentRoute: typeof AdminRoute
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -826,7 +723,6 @@ const rootRouteChildren: RootRouteChildren = {
   FactionsRoute: FactionsRoute,
   LocationsRoute: LocationsRoute,
   LoginRoute: LoginRoute,
-  McpRoute: McpRoute,
   PortfolioRoute: PortfolioRoute,
   PowerSystemsRoute: PowerSystemsRoute,
   ResetRoute: ResetRoute,
@@ -836,13 +732,8 @@ const rootRouteChildren: RootRouteChildren = {
   StoriesRoute: StoriesRouteWithChildren,
   StorybookChroniclesRoute: StorybookChroniclesRouteWithChildren,
   WorldsRoute: WorldsRoute,
-  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   CharactersSlugRoute: CharactersSlugRoute,
   CharactersIndexRoute: CharactersIndexRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
-  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -136,7 +136,6 @@ const PUBLIC_PATHS = [
   "/storybook-chronicles/development-process",
   "/login",
   "/reset",
-  "/.lovable/oauth/consent",
 ];
 
 function AuthGate({ children }: { children: React.ReactNode }) {
