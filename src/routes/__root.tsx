@@ -78,10 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Storybook Chronicles Codex" },
-      { name: "description", content: "Private lore database for Storybook Chronicles." },
-      { name: "robots", content: "noindex,nofollow" },
+      { name: "description", content: "Explore the published lore of Storybook Chronicles." },
+      { name: "robots", content: "index,follow" },
       { property: "og:title", content: "Storybook Chronicles Codex" },
-      { property: "og:description", content: "Private lore database for Storybook Chronicles." },
+      { property: "og:description", content: "Explore the published lore of Storybook Chronicles." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -124,25 +124,19 @@ function RootComponent() {
   );
 }
 
-const PUBLIC_PATHS = [
-  "/",
-  "/about",
-  "/portfolio",
-  "/skills",
-  "/resume",
-  "/contact",
-  "/storybook-chronicles",
-  "/storybook-chronicles/timeline",
-  "/storybook-chronicles/development-process",
-  "/login",
-  "/reset",
+const PUBLIC_ROUTE_PATTERNS = [
+  /^\/$/,
+  /^\/(about|portfolio|skills|resume|contact|login|reset)\/?$/,
+  /^\/storybook-chronicles(?:\/.*)?$/,
+  /^\/(characters|stories)(?:\/[^/]+)?\/?$/,
+  /^\/(factions|locations|worlds|power-systems)\/?$/,
 ];
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const isPublic = PUBLIC_PATHS.includes(location.pathname);
+  const isPublic = PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(location.pathname));
 
   useEffect(() => {
     if (auth.loading) return;

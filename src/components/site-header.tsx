@@ -37,7 +37,12 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto text-xs text-muted-foreground">
+        <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+          {!auth.loading && !auth.email && (
+            <Link to="/login" search={{ next: undefined }} className="px-2 py-1 hover:text-foreground">
+              Owner Sign In
+            </Link>
+          )}
           {auth.email && (
             <button
               onClick={async () => { await signOut(); router.navigate({ to: "/login", search: { next: undefined } }); }}

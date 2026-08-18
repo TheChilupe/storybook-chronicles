@@ -1,86 +1,168 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { isAllowed } from "@/lib/auth";
 
 const must = <T>(d: T | null, e: any): T => {
   if (e) throw e;
   return d as T;
 };
 
+export type PublicStory = {
+  id: string;
+  slug: string;
+  number: number;
+  title: string;
+  tagline: string | null;
+  summary_md: string | null;
+  cover_image_url: string | null;
+  canon_status: string;
+  summary_spoiler_md?: string | null;
+};
+
+const publicDb = supabase as any;
+
+async function publicRows(view: string) {
+  const { data, error } = await publicDb.from(view).select("*");
+  return must(data, error) as any[];
+}
+
+async function hasOwnerSession() {
+  const { data } = await supabase.auth.getSession();
+  return isAllowed(data.session?.user.email);
+}
+
 export const storiesQO = queryOptions({
   queryKey: ["stories"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("stories").select("*").order("number");
-    return must(data, error);
+    const owner = await hasOwnerSession();
+    const { data, error } = await (owner ? supabase.from("stories") : publicDb.from("public_codex_stories"))
+      .select("*").eq("canon_status", "canon").order("number");
+    return must(data, error) as PublicStory[];
   },
 });
 export const storyQO = (slug: string) =>
   queryOptions({
     queryKey: ["story", slug],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stories")
+      const owner = await hasOwnerSession();
+      const { data, error } = await (owner ? supabase.from("stories") : publicDb.from("public_codex_stories"))
         .select("*")
+        .eq("canon_status", "canon")
         .eq("slug", slug)
         .maybeSingle();
-      return must(data, error);
+      return must(data, error) as PublicStory | null;
     },
   });
+
+async function loadPublicCharacters(slug?: string): Promise<CharacterWithRelations[]> {
+  const [allCharacters, stories, characterStories, factions, characterFactions, powers,
+    characterPowers, eras, storyNotes, moments, quotes, relationships] = await Promise.all([
+    publicRows("public_codex_characters"),
+    publicRows("public_codex_stories"),
+    publicRows("public_codex_character_stories"),
+    publicRows("public_codex_factions"),
+    publicRows("public_codex_character_factions"),
+    publicRows("public_codex_power_systems"),
+    publicRows("public_codex_character_powers"),
+    publicRows("public_codex_character_eras"),
+    publicRows("public_codex_character_story_notes"),
+    publicRows("public_codex_character_key_moments"),
+    publicRows("public_codex_character_quotes"),
+    publicRows("public_codex_character_relationships"),
+  ]);
+  const characters = (slug
+    ? allCharacters.filter((character) => character.slug === slug)
+    : allCharacters
+  ).sort((a, b) => a.name.localeCompare(b.name));
+  const byId = (rows: any[]) => new Map(rows.map((row) => [row.id, row]));
+  const storyById = byId(stories);
+  const factionById = byId(factions);
+  const powerById = byId(powers);
+  const characterById = byId(allCharacters);
+  const rowsFor = (rows: any[], id: string) => rows.filter((row) => row.character_id === id);
+
+  return characters.map((character) => ({
+    ...character,
+    // Spoiler/editorial columns are intentionally absent from the database view.
+    spoiler_md: null,
+    primary_story: storyById.get(character.primary_story_id) ?? null,
+    character_stories: rowsFor(characterStories, character.id).map((row) => ({
+      role: row.role, stories: storyById.get(row.story_id) ?? null,
+    })),
+    character_factions: rowsFor(characterFactions, character.id).map((row) => ({
+      role: row.role, description: row.description, is_spoiler: false,
+      factions: factionById.get(row.faction_id) ?? null,
+    })),
+    character_powers: rowsFor(characterPowers, character.id).map((row) => ({
+      notes: row.notes, power_systems: powerById.get(row.power_system_id) ?? null,
+    })),
+    character_eras: rowsFor(eras, character.id).map((row) => ({
+      ...row, is_spoiler: false, story: storyById.get(row.story_id) ?? null,
+    })),
+    character_story_notes: rowsFor(storyNotes, character.id).map((row) => ({
+      ...row, is_spoiler: false, story: storyById.get(row.story_id) ?? null,
+    })),
+    character_key_moments: rowsFor(moments, character.id).map((row) => ({
+      ...row, is_spoiler: false, story: storyById.get(row.story_id) ?? null,
+    })),
+    character_quotes: rowsFor(quotes, character.id).map((row) => ({ ...row, is_spoiler: false })),
+    character_relationships: rowsFor(relationships, character.id).map((row) => ({
+      ...row, is_spoiler: false, related: characterById.get(row.related_character_id) ?? null,
+    })),
+  })) as CharacterWithRelations[];
+}
+
+async function loadOwnerCharacters(slug?: string): Promise<CharacterWithRelations[]> {
+  let request = supabase
+    .from("characters")
+    .select(
+      `*,
+      primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
+      character_stories(role, stories(id, slug, number, title)),
+      character_factions(role, description, is_spoiler, factions(id, slug, name)),
+      character_powers(notes, power_systems(id, slug, name)),
+      character_eras(id, era_label, identity, function_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
+      character_story_notes(id, role_label, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
+      character_key_moments(id, title, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
+      character_quotes(id, quote_md, context_md, sort_order, is_spoiler),
+      character_relationships!character_relationships_character_id_fkey(id, relation_label, inverse_label, sort_order, is_spoiler, related:characters!character_relationships_related_character_id_fkey(id, slug, name, alias, portrait_url, accent_color, canon_status, status, archived_at))`,
+    )
+    .eq("canon_status", "canon")
+    .eq("status", "published")
+    .is("archived_at", null)
+    .order("name");
+  if (slug) request = request.eq("slug", slug);
+  const { data, error } = await request;
+  return must(data, error) as unknown as CharacterWithRelations[];
+}
+
+async function loadCodexCharacters(slug?: string) {
+  return (await hasOwnerSession()) ? loadOwnerCharacters(slug) : loadPublicCharacters(slug);
+}
 
 export const charactersQO = queryOptions({
   queryKey: ["characters"],
   queryFn: async () => {
-    const { data, error } = await supabase
-      .from("characters")
-      .select(
-        `*,
-          primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
-          character_stories(role, stories(id, slug, number, title)),
-          character_factions(role, description, is_spoiler, factions(id, slug, name)),
-          character_powers(notes, power_systems(id, slug, name))`,
-      )
-      .eq("canon_status", "canon")
-      .eq("status", "published")
-      .is("archived_at", null)
-      .order("name");
-    return must(data, error) as CharacterWithRelations[];
+    return loadCodexCharacters();
   },
 });
 export const characterQO = (slug: string) =>
   queryOptions({
     queryKey: ["character", slug],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("characters")
-        .select(
-          `*,
-          primary_story:stories!characters_primary_story_id_fkey(id, slug, number, title),
-          character_stories(role, stories(id, slug, number, title)),
-          character_factions(role, description, is_spoiler, factions(id, slug, name)),
-          character_powers(notes, power_systems(id, slug, name)),
-          character_eras(id, era_label, identity, function_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
-          character_story_notes(id, role_label, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
-          character_key_moments(id, title, summary_md, sort_order, is_spoiler, story:stories(id, slug, number, title)),
-          character_quotes(id, quote_md, context_md, sort_order, is_spoiler),
-          character_relationships!character_relationships_character_id_fkey(id, relation_label, inverse_label, sort_order, is_spoiler, related:characters!character_relationships_related_character_id_fkey(id, slug, name, alias, portrait_url, accent_color, canon_status))`,
-        )
-        .eq("canon_status", "canon")
-        .eq("slug", slug)
-        .maybeSingle();
-      return must(data, error) as CharacterWithRelations | null;
+      return (await loadCodexCharacters(slug))[0] ?? null;
     },
   });
 export const charactersByStoryQO = (storyId: string) =>
   queryOptions({
     queryKey: ["characters", "story", storyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("characters")
-        .select("*")
-        .eq("canon_status", "canon")
-        .eq("story_id", storyId)
-        .order("name");
-      return must(data, error);
+      const characters = await loadCodexCharacters();
+      return characters.filter((character) =>
+        character.primary_story?.id === storyId ||
+        character.character_stories.some((entry) => entry.stories?.id === storyId),
+      );
     },
   });
 
@@ -148,27 +230,24 @@ export type CharacterWithRelations = Tables<"characters"> & {
   }>;
 };
 
-function listQO<T extends string>(table: T) {
+function listQO(view: string) {
   return queryOptions({
-    queryKey: [table, "list"],
+    queryKey: [view, "list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(table as any)
+      const { data, error } = await publicDb
+        .from(view)
         .select("*")
-        .eq("canon_status", "canon")
-        .eq("status", "published")
-        .is("archived_at", null)
         .order("name");
       return must(data, error);
     },
   });
 }
-function detailQO<T extends string>(table: T, slug: string) {
+function detailQO(view: string, slug: string) {
   return queryOptions({
-    queryKey: [table, "slug", slug],
+    queryKey: [view, "slug", slug],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(table as any)
+      const { data, error } = await publicDb
+        .from(view)
         .select("*")
         .eq("slug", slug)
         .maybeSingle();
@@ -177,25 +256,22 @@ function detailQO<T extends string>(table: T, slug: string) {
   });
 }
 
-export const factionsQO = listQO("factions");
-export const factionQO = (slug: string) => detailQO("factions", slug);
-export const worldsQO = listQO("worlds");
+export const factionsQO = listQO("public_codex_factions");
+export const factionQO = (slug: string) => detailQO("public_codex_factions", slug);
+export const worldsQO = listQO("public_codex_locations");
 export const locationsQO = queryOptions({
   queryKey: ["locations", "list"],
   queryFn: async () => {
-    const { data, error } = await supabase
-      .from("worlds")
+    const { data, error } = await publicDb
+      .from("public_codex_locations")
       .select("*")
-      .eq("canon_status", "canon")
-      .eq("status", "published")
-      .is("archived_at", null)
       .order("name");
     return must(data, error);
   },
 });
-export const worldQO = (slug: string) => detailQO("worlds", slug);
-export const powerSystemsQO = listQO("power_systems");
-export const powerSystemQO = (slug: string) => detailQO("power_systems", slug);
+export const worldQO = (slug: string) => detailQO("public_codex_locations", slug);
+export const powerSystemsQO = listQO("public_codex_power_systems");
+export const powerSystemQO = (slug: string) => detailQO("public_codex_power_systems", slug);
 
 export const spoilerNotesQO = queryOptions({
   queryKey: ["spoiler_notes"],

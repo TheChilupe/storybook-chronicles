@@ -33,7 +33,7 @@ function LoginPage() {
     if (nextPath) {
       window.location.href = nextPath;
     } else {
-      navigate({ to: "/" });
+      navigate({ to: "/admin" });
     }
   };
 
