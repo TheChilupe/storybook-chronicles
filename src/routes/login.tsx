@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { isAllowed, ALLOWED_EMAIL } from "@/lib/auth";
+import { isAllowed } from "@/lib/auth";
 import logo from "@/assets/logo-white.png";
 
 export const Route = createFileRoute("/login")({
@@ -23,7 +23,6 @@ function LoginPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
   const nextPath = safeNext(next);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -49,16 +48,13 @@ function LoginPage() {
     e.preventDefault();
     setErr(null);
     setInfo(null);
-    if (!isAllowed(email)) { setErr("This codex is private."); return; }
+    if (!isAllowed(email)) {
+      setErr("This codex is private.");
+      return;
+    }
     setBusy(true);
     try {
-      const { error } = mode === "signin"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo: `${window.location.origin}${nextPath ?? "/"}` },
-          });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       goNext();
     } catch (e: any) {
@@ -71,7 +67,10 @@ function LoginPage() {
   const sendReset = async () => {
     setErr(null);
     setInfo(null);
-    if (!isAllowed(email)) { setErr("Enter the allowlisted email first."); return; }
+    if (!isAllowed(email)) {
+      setErr("Enter the allowlisted email first.");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -88,34 +87,53 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-8 shadow-2xl">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-8 shadow-2xl"
+      >
         <div className="flex flex-col items-center text-center">
           <img src={logo} alt="" className="h-14 w-14" />
           <h1 className="mt-3 text-xl font-semibold">Storybook Chronicles Codex</h1>
-          <p className="mt-1 text-xs text-muted-foreground">Private lore bible — access restricted.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Private Storybook Chronicles workspace — owner access only.
+          </p>
         </div>
         <label className="block text-sm">
           <span className="text-muted-foreground">Email</span>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder={ALLOWED_EMAIL} />
+            placeholder="Email"
+          />
         </label>
         <label className="block text-sm">
           <span className="text-muted-foreground">Password</span>
-          <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          <input
+            type="password"
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
         </label>
         {err && <p className="text-sm text-[color:var(--destructive)]">{err}</p>}
         {info && <p className="text-sm text-muted-foreground">{info}</p>}
-        <button disabled={busy} className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
-          {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+        <button
+          disabled={busy}
+          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        >
+          {busy ? "…" : "Sign in"}
         </button>
-        <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="block w-full text-center text-xs text-muted-foreground hover:text-foreground">
-          {mode === "signin" ? "First time? Create your account" : "Have an account? Sign in"}
-        </button>
-        <button type="button" onClick={sendReset} disabled={busy}
-          className="block w-full text-center text-xs text-muted-foreground hover:text-foreground">
+        <button
+          type="button"
+          onClick={sendReset}
+          disabled={busy}
+          className="block w-full text-center text-xs text-muted-foreground hover:text-foreground"
+        >
           Forgot password?
         </button>
       </form>
