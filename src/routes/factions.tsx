@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { factionsQO } from "@/lib/queries";
 import { EntityPage } from "@/components/entity-page";
 import { Markdown } from "@/components/markdown";
+import { PublicQueryError } from "@/components/public-query-error";
 
 export const Route = createFileRoute("/factions")({
   head: () => ({ meta: [{ title: "Factions — Storybook Codex" }] }),
@@ -10,11 +11,13 @@ export const Route = createFileRoute("/factions")({
 });
 
 function FactionsPage() {
-  const { data = [] } = useQuery(factionsQO);
+  const { data = [], isError } = useQuery(factionsQO);
   return (
     <EntityPage title="Factions">
-      {data.length === 0 ? (
-        <p className="text-muted-foreground">No factions yet. Add them from the Admin page.</p>
+      {isError ? (
+        <PublicQueryError content="factions" />
+      ) : data.length === 0 ? (
+        <p className="text-muted-foreground">No factions yet.</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {data.map((f: any) => (

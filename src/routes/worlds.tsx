@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { locationsQO } from "@/lib/queries";
 import { EntityPage } from "@/components/entity-page";
 import { Markdown } from "@/components/markdown";
+import { PublicQueryError } from "@/components/public-query-error";
 
 export const Route = createFileRoute("/worlds")({
   head: () => ({ meta: [{ title: "Locations — Storybook Codex" }] }),
@@ -10,19 +11,17 @@ export const Route = createFileRoute("/worlds")({
 });
 
 export function LocationsPage() {
-  const { data = [], error } = useQuery(locationsQO);
+  const { data = [], isError } = useQuery(locationsQO);
   return (
     <EntityPage title="Locations">
       <p className="mb-6 text-muted-foreground">
         Cities, districts, landmarks, facilities, hidden regions, planets, realms, and other
         settings across Storybook Chronicles.
       </p>
-      {error ? (
-        <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          Could not load locations: {error instanceof Error ? error.message : "Unknown query error"}
-        </p>
+      {isError ? (
+        <PublicQueryError content="locations" />
       ) : data.length === 0 ? (
-        <p className="text-muted-foreground">No locations yet. Add them from the Admin page.</p>
+        <p className="text-muted-foreground">No locations yet.</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {data.map((w: any) => (
