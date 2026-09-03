@@ -5,9 +5,17 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-background">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-10 sm:grid-cols-3">
         <div>
-          <div className="font-semibold text-foreground">Alexander Chilupe</div>
+          <div className="font-semibold text-foreground">
+            Alexander Chilupe
+          </div>
+
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            Project management, product thinking, technology, and creative systems.
+            Project management, product thinking, technology, and creative
+            systems.
+          </p>
+
+          <p className="mt-3 text-sm text-muted-foreground">
+            Cleveland, Ohio
           </p>
         </div>
 
@@ -25,7 +33,10 @@ export function SiteFooter() {
               Portfolio
             </Link>
 
-            <Link to="/storybook-chronicles" className="hover:text-primary">
+            <Link
+              to="/storybook-chronicles"
+              className="hover:text-primary"
+            >
               Storybook Chronicles
             </Link>
 
@@ -45,8 +56,20 @@ export function SiteFooter() {
           </div>
 
           <div className="mt-4 flex flex-col gap-2 text-sm">
-            <a href="mailto:thechilupe@gmail.com" className="hover:text-primary">
+            <a
+              href="mailto:thechilupe@gmail.com"
+              className="hover:text-primary"
+            >
               Email
+            </a>
+
+            <a
+              href="https://www.linkedin.com/in/alexander-chilupe-64a89313b/"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-primary"
+            >
+              LinkedIn
             </a>
 
             <a
@@ -58,13 +81,14 @@ export function SiteFooter() {
               GitHub
             </a>
 
-            <Link to="/resume" className="hover:text-primary">
+            <a
+              href="/Alexander_Chilupe_2026_Resume_Public.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-primary"
+            >
               Resume
-            </Link>
-
-            <Link to="/contact" className="hover:text-primary">
-              Contact
-            </Link>
+            </a>
           </div>
         </div>
       </div>

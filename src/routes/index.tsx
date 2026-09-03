@@ -39,7 +39,7 @@ const capabilities = [
   },
   {
     title: "AI-Assisted Workflows",
-    body: "Using ChatGPT, Claude, and Lovable as force multipliers across planning, writing, and shipping.",
+    body: "Using AI as a force multiplier across planning, research, development, writing, and delivery.",
   },
   {
     title: "Creative Development",
@@ -153,7 +153,7 @@ function Index() {
           </div>
         </section>
 
-        {/* Featured Project */}
+        {/* Featured Case Study */}
         <section className="mt-20 rounded-2xl border border-border bg-card p-8 sm:p-10">
           <div className="flex flex-col gap-2">
             <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -248,10 +248,7 @@ function Index() {
                 </span>
 
                 {index < process.length - 1 && (
-                  <span
-                    aria-hidden
-                    className="text-muted-foreground"
-                  >
+                  <span aria-hidden className="text-muted-foreground">
                     →
                   </span>
                 )}
@@ -260,38 +257,46 @@ function Index() {
           </ol>
         </section>
 
-        {/* Closing CTA */}
+        {/* Contact CTA */}
         <section className="mt-20 rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
-          <h2 className="text-2xl font-semibold sm:text-3xl">
+          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Cleveland, Ohio
+          </span>
+
+          <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">
             Let's build something ambitious.
           </h2>
 
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-            Explore the full portfolio, read my resume, or get in touch to
-            discuss creative and project management work.
+            Project management, technical implementation, product development,
+            AI-assisted workflows, and creative systems.
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              to="/portfolio"
+            <a
+              href="mailto:thechilupe@gmail.com"
               className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
             >
-              View Portfolio
-            </Link>
+              Email Me
+            </a>
 
-            <Link
-              to="/resume"
+            <a
+              href="https://www.linkedin.com/in/alexander-chilupe-64a89313b/"
+              target="_blank"
+              rel="noreferrer"
               className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
             >
-              Resume
-            </Link>
+              LinkedIn
+            </a>
 
-            <Link
-              to="/contact"
+            <a
+              href="/Alexander_Chilupe_2026_Resume_Public.pdf"
+              target="_blank"
+              rel="noreferrer"
               className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
             >
-              Contact
-            </Link>
+              View Resume
+            </a>
           </div>
         </section>
       </main>
