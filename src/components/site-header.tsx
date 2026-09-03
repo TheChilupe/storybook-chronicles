@@ -5,12 +5,10 @@ import logo from "@/assets/logo-white.png";
 
 const baseNav = [
   { to: "/", label: "Home" },
-  { to: "/about", label: "About" },
   { to: "/portfolio", label: "Portfolio" },
   { to: "/storybook-chronicles", label: "Storybook Chronicles" },
   { to: "/skills", label: "Skills" },
-  { to: "/resume", label: "Resume" },
-  { to: "/contact", label: "Contact" },
+  { to: "/about", label: "About" },
 ] as const;
 
 export function SiteHeader() {

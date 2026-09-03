@@ -12,6 +12,7 @@ import {
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { signOut } from "@/lib/auth";
+import { SiteFooter } from "@/components/site-footer";
 
 import appCss from "../styles.css?url";
 
@@ -114,11 +115,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+
+  const showFooter =
+    PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(location.pathname)) &&
+    !/^\/(login|reset)\/?$/.test(location.pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthGate>
         <Outlet />
+        {showFooter && <SiteFooter />}
       </AuthGate>
     </QueryClientProvider>
   );
