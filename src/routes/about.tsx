@@ -1,24 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import cloudBg from "@/assets/main-cloud-bg.jpg";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About the Builder — Alexander Chilupe" },
+      { title: "About Alexander Chilupe — Project Manager & Creative Builder" },
       {
         name: "description",
         content:
-          "Meet Alexander Chilupe — a Creative Project Manager, creative builder, and creator of Storybook Chronicles.",
+          "Meet Alexander Chilupe, an Implementation Project Manager and creative builder based in Cleveland, Ohio.",
       },
       {
         property: "og:title",
-        content: "About the Builder — Alexander Chilupe",
+        content: "About Alexander Chilupe — Project Manager & Creative Builder",
       },
       {
         property: "og:description",
         content:
-          "Meet Alexander Chilupe — a Creative Project Manager, creative builder, and creator of Storybook Chronicles.",
+          "Project management, product thinking, software literacy, AI-assisted workflows, and the story behind Storybook Chronicles.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -26,55 +27,85 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
-const quickFacts = [
-  { label: "Location", value: "Ohio" },
-  { label: "Profession", value: "Project Manager" },
-  { label: "Education", value: "Business Administration" },
-  { label: "Certification Goal", value: "PMP Candidate" },
-  { label: "Focus", value: "Creative Product Management" },
-  { label: "Specialty", value: "AI-Assisted Workflows" },
-  { label: "Interests", value: "Game Design, Worldbuilding, Product Development" },
-  {
-    label: "Tools",
-    value: ["ClickUp", "Notion", "GitHub", "Lovable", "Claude", "ChatGPT", "VS Code", "Supabase"],
-  },
+const resumeUrl = "/Alexander_Chilupe_2026_Resume_Public.pdf";
+const chapters = [
+  [
+    "Project Management",
+    "Project management was not originally the career path I expected, but it taught me how organizations turn ideas into outcomes. It developed how I plan, coordinate, communicate with stakeholders, manage risk, and translate complexity into actionable work through implementation and delivery.",
+  ],
+  [
+    "Software Development",
+    "After college, I wanted a skill that allowed me to build things directly. I completed a Software Developer Certificate through We Can Code IT. Software development became technical literacy: a way to communicate with technical teams, understand architecture and implementation constraints, prototype ideas, and work more effectively across technical projects.",
+  ],
+  [
+    "Product",
+    "Product became the name for a skillset I had already been practicing. Through Storybook Chronicles and independent projects, I became increasingly interested in product thinking, user experience, information architecture, and systems design. I discovered that I enjoy not only creating ideas, but structuring, preserving, maintaining, and growing them.",
+  ],
+  [
+    "AI-Assisted Workflows",
+    "AI is not merely a convenience. I use AI-assisted workflows to reduce the time, production effort, and upfront cost required to prototype ideas across concept art, software, webpages, product concepts, writing systems, research, planning, and animation experiments.",
+  ],
+] as const;
+const career = [
+  ["Current", "June 2026 — Present", "Implementation Project Manager", "ECHO Health, Inc."],
+  ["Previous", "October 2023 — June 2026", "Project Manager", "Blue Technologies Smart Solutions"],
+  [
+    "Independent",
+    "January 2025 — Present",
+    "Independent Project Manager / Automation Consultant",
+    "Independent",
+  ],
+] as const;
+const credentials = [
+  [
+    "Bachelor of Business Administration",
+    "Marketing & Communication Minor",
+    "Malone University · Canton, Ohio",
+    "May 2022",
+  ],
+  ["Certified iManage Project Manager", "Professional credential", "", ""],
+  ["PMP Exam Preparation", "35 contact hours completed", "", ""],
+  ["Software Developer Certificate", "We Can Code IT", "", "August 2023"],
+] as const;
+const skillPath = [
+  "Business",
+  "Project Management",
+  "Software",
+  "Product",
+  "AI",
+  "Creative Systems",
+];
+const labSkills = [
+  "Project management",
+  "Product thinking",
+  "Information architecture",
+  "AI-assisted development",
+  "Software",
+  "Visual direction",
+  "Creative operations",
+  "Storytelling",
+  "Long-term knowledge management",
 ];
 
-const timeline = [
-  {
-    year: "2010",
-    text: "Began creating the earliest version of Storybook Chronicles with my younger brother.",
-  },
-  {
-    year: "2023",
-    text: "Transitioned into professional Project Management and began applying structured delivery practices to my work.",
-  },
-  {
-    year: "2024",
-    text: "Started documenting Storybook Chronicles as an organized long-term creative project.",
-  },
-  {
-    year: "2025",
-    text: "Expanded the project into a formal codex, lore database, and digital product concept.",
-  },
-  {
-    year: "2026",
-    text: "Began building a Creative Project Management portfolio using Storybook Chronicles as the flagship case study.",
-  },
-];
+function Heading({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <h2 className="text-2xl font-semibold sm:text-3xl">{children}</h2>
+      <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</span>
+    </div>
+  );
+}
 
 function AboutPage() {
   return (
     <div className="bg-background text-foreground">
       <SiteHeader />
-
-      {/* Hero */}
       <section
-        className="relative overflow-hidden px-6 py-20 sm:py-28"
+        className="relative overflow-hidden px-6 py-20 sm:py-28 lg:py-32"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(11,15,23,0.6), rgba(11,15,23,0.9) 80%, var(--color-background)), url(${cloudBg})`,
-          backgroundSize: "cover",
+          backgroundImage: `linear-gradient(to bottom, rgba(11,15,23,.52), rgba(11,15,23,.92) 82%, var(--color-background)), url(${cloudBg})`,
           backgroundPosition: "center",
+          backgroundSize: "cover",
         }}
       >
         <div
@@ -82,174 +113,241 @@ function AboutPage() {
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             backgroundImage:
-              "radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.7), transparent 60%), radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.6), transparent 60%), radial-gradient(1.5px 1.5px at 40% 80%, rgba(255,255,255,0.5), transparent 60%), radial-gradient(1px 1px at 85% 20%, rgba(255,255,255,0.65), transparent 60%), radial-gradient(1px 1px at 10% 75%, rgba(255,255,255,0.55), transparent 60%)",
+              "radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.7), transparent 60%), radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,.6), transparent 60%), radial-gradient(1.5px 1.5px at 40% 80%, rgba(255,255,255,.5), transparent 60%)",
           }}
         />
-        <div className="relative mx-auto max-w-5xl">
+        <div className="relative mx-auto max-w-6xl">
           <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-            About the Builder
+            About · Cleveland, Ohio
           </span>
-          <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            I turn ambitious ideas into structured, achievable projects.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-foreground/80">
-            I'm a Project Manager and creative builder with a background in business and software
-            development. I enjoy organizing complex ideas, designing practical systems, and using
-            technology and AI-assisted workflows to move projects from vision to execution.
+          <h1 className="mt-5 text-4xl font-bold sm:text-6xl">Alexander Chilupe</h1>
+          <p className="mt-4 text-lg font-medium text-primary sm:text-2xl">
+            Implementation Project Manager / Creative Project Manager
+          </p>
+          <p className="mt-8 max-w-3xl text-xl font-medium leading-relaxed sm:text-2xl">
+            Professionally a Project Manager, personally a creative builder.
+          </p>
+          <p className="mt-4 max-w-3xl text-base leading-relaxed text-foreground/80 sm:text-lg">
+            My background spans business, project management, software development, product
+            thinking, AI-assisted workflows, and creative development. I enjoy organizing complex
+            ideas, building practical systems, learning technology, and turning ambitious ideas into
+            something structured and usable.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/portfolio"
-              className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:opacity-90"
-            >
-              View My Work
-            </Link>
-            <Link
-              to="/storybook-chronicles"
-              className="rounded-md border border-border bg-background/40 px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
-            >
-              Explore Storybook Chronicles
-            </Link>
+            <External href={resumeUrl} primary>
+              View Resume
+            </External>
+            <External href="https://www.linkedin.com/in/alexander-chilupe-64a89313b/">
+              LinkedIn
+            </External>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-        {/* My Story */}
+      <main className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <section>
-          <h2 className="text-2xl font-semibold sm:text-3xl">Where Storybook Chronicles Began</h2>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Storybook Chronicles began years ago as a simple idea shared between my younger brother
-            and me. We spent countless hours imagining worlds, characters, and adventures inspired by
-            the stories we loved growing up.
-          </p>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Because we are nine years apart, the project became more than a creative hobby. It became
-            something we could build together and a way to bridge the gap between us.
-          </p>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Over time, the project grew far beyond storytelling. It became my personal laboratory
-            for learning product management, AI-assisted development, information architecture,
-            worldbuilding, and long-term project planning.
-          </p>
-        </section>
-
-        {/* What the Website Represents */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-semibold sm:text-3xl">From Passion Project to Digital Product</h2>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            This website represents that journey. It showcases not only the universe I am creating,
-            but also the systems, workflows, and technical skills I have developed while bringing it
-            to life.
-          </p>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            My goal is to build products that combine creativity with thoughtful execution. Whether
-            managing software projects professionally or designing an original fictional universe, I
-            enjoy solving complex problems, organizing information, and turning ideas into experiences
-            people can explore.
-          </p>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Storybook Chronicles is the flagship project that ties those passions together, and this
-            website marks the first major step toward turning a lifelong vision into something
-            tangible.
-          </p>
-        </section>
-
-        {/* Quick Facts */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-semibold sm:text-3xl">Quick Facts</h2>
-          <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-            {quickFacts.map((fact) => (
-              <div
-                key={fact.label}
-                className="rounded-xl border border-border bg-card p-5 transition hover:border-primary/40"
+          <Heading label="My story">The disciplines that shaped how I work</Heading>
+          <div className="grid gap-x-10 gap-y-5 lg:grid-cols-2">
+            {chapters.map(([title, body], i) => (
+              <article
+                key={title}
+                className="border-t border-border py-6 sm:grid sm:grid-cols-[3rem_1fr] sm:gap-4"
               >
-                <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                  {fact.label}
-                </dt>
-                <dd className="mt-2">
-                  {Array.isArray(fact.value) ? (
-                    <div className="flex flex-wrap gap-2">
-                      {fact.value.map((v) => (
-                        <span
-                          key={v}
-                          className="rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-foreground/80"
-                        >
-                          {v}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-sm font-medium text-foreground">{fact.value}</span>
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        {/* My Philosophy */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-semibold sm:text-3xl">How I Approach Complex Work</h2>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            I believe the best projects begin with a compelling vision, but succeed because of
-            thoughtful planning and consistent execution.
-          </p>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Storybook Chronicles has taught me that large goals are not completed in a single
-            leap. They are built one milestone at a time through clear priorities, documentation,
-            testing, feedback, and iteration.
-          </p>
-        </section>
-
-        {/* Journey Timeline */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-semibold sm:text-3xl">My Journey</h2>
-          <div className="relative mt-8 pl-8">
-            <div className="absolute left-[5px] top-2 bottom-2 w-px bg-border" />
-            {timeline.map((item) => (
-              <div key={item.year} className="relative pb-10 last:pb-0">
-                <div className="absolute -left-[1px] top-1.5 h-3 w-3 rounded-full bg-primary ring-2 ring-background" />
-                <div className="flex flex-col gap-1 pl-6 sm:flex-row sm:gap-6">
-                  <span className="min-w-[4rem] text-base font-semibold text-primary">
-                    {item.year}
-                  </span>
-                  <p className="text-base text-foreground/90">{item.text}</p>
+                <span className="text-sm font-semibold text-primary">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="mt-2 text-xl font-semibold sm:mt-0">{title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                    {body}
+                  </p>
                 </div>
-              </div>
+              </article>
+            ))}
+          </div>
+          <blockquote className="mt-8 rounded-2xl border border-primary/30 bg-primary/10 p-6 text-base leading-relaxed text-foreground/90 sm:p-8 sm:text-lg">
+            “AI-assisted workflows let me prototype ideas that would otherwise require significantly
+            more time, specialized labor, or upfront cost. I do not see AI as replacing expertise. I
+            use it to shorten the distance between an idea and the point where expert collaboration
+            becomes valuable.”
+          </blockquote>
+        </section>
+
+        <section className="mt-20">
+          <Heading label="Career journey">From implementation to product thinking</Heading>
+          <p className="max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            My work has progressed across healthcare payments, enterprise technology implementation,
+            cloud and document-management implementations, automation, and cross-functional
+            delivery. The common thread is helping teams move complex work toward a clear, usable
+            outcome.
+          </p>
+          <ol className="mt-8 overflow-hidden rounded-2xl border border-border bg-card">
+            {career.map(([label, period, role, company]) => (
+              <li
+                key={role}
+                className="grid gap-2 border-b border-border p-6 last:border-b-0 sm:grid-cols-[minmax(10rem,.8fr)_1.2fr] sm:gap-8"
+              >
+                <div>
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                    {label}
+                  </span>
+                  <p className="mt-1 text-sm text-primary">{period}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">{role}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{company}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <External href={resumeUrl} className="mt-6">
+            View Full Resume
+          </External>
+        </section>
+
+        <section className="mt-20">
+          <Heading label="Education & credentials">Foundations and continued learning</Heading>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {credentials.map(([title, detail, institution, date]) => (
+              <article key={title} className="rounded-2xl border border-border bg-card p-6">
+                <h3 className="text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
+                {institution && <p className="mt-1 text-sm text-muted-foreground">{institution}</p>}
+                {date && (
+                  <p className="mt-4 text-xs uppercase tracking-wider text-primary">{date}</p>
+                )}
+              </article>
             ))}
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section className="mt-20 rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
-          <h2 className="text-2xl font-semibold sm:text-3xl">Building the Next Chapter</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            I am continuing to develop Storybook Chronicles while strengthening my skills in
-            project management, product thinking, AI-assisted development, and digital creation.
+        <section className="mt-20">
+          <Heading label="Skills I’ve collected">An overlapping set of perspectives</Heading>
+          <p className="max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            I see my path less as a traditional ladder and more as an accumulation of useful
+            perspectives. These disciplines increasingly overlap in how I understand problems, guide
+            projects, and build practical systems.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              to="/portfolio"
+          <ol className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            {skillPath.map((skill, i) => (
+              <li key={skill} className="rounded-xl border border-border bg-card p-4 lg:min-h-28">
+                <span className="text-xs font-semibold text-primary">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="mt-2 text-sm font-semibold">{skill}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="mt-20 overflow-hidden rounded-2xl border border-border bg-card p-7 sm:p-10">
+          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            What I’m building
+          </span>
+          <div className="mt-4 grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-12">
+            <div>
+              <h2 className="text-3xl font-semibold sm:text-4xl">Storybook Chronicles</h2>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Storybook Chronicles is my long-term personal laboratory: an interconnected creative
+                IP and digital product ecosystem that I am building, organizing, and maintaining
+                over time. It is where creative work meets the systems needed to preserve and grow
+                it.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  to="/storybook-chronicles"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                >
+                  Explore Storybook Chronicles
+                </Link>
+                <Link
+                  to="/portfolio"
+                  className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
+                >
+                  View Portfolio
+                </Link>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                Practiced through the project
+              </p>
+              <ul className="mt-4 grid gap-x-5 sm:grid-cols-2">
+                {labSkills.map((skill) => (
+                  <li key={skill} className="border-t border-border py-3 text-sm">
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-20 grid overflow-hidden rounded-2xl border border-border bg-card lg:grid-cols-[.85fr_1.15fr]">
+          <div className="border-b border-border p-7 sm:p-10 lg:border-r lg:border-b-0">
+            <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Resume</span>
+            <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">Professional experience</h2>
+            <External href={resumeUrl} primary className="mt-6">
+              View Resume
+            </External>
+          </div>
+          <p className="p-7 text-base leading-relaxed text-muted-foreground sm:p-10 sm:text-lg">
+            Implementation Project Manager leading client-facing technology implementations across
+            healthcare payments, enterprise document management, cloud migrations, and automation.
+            Experienced in project planning, stakeholder coordination, requirements, UAT, go-live,
+            change, dependencies, and cross-functional delivery.
+          </p>
+        </section>
+
+        <section className="mt-20 rounded-2xl border border-border bg-card p-8 text-center sm:p-12">
+          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Cleveland, Ohio
+          </span>
+          <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">
+            Let’s build something ambitious.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+            Reach out to discuss thoughtful implementation, creative systems, product ideas, or the
+            work behind Storybook Chronicles.
+          </p>
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <a
+              href="mailto:thechilupe@gmail.com"
               className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
             >
-              View Portfolio
-            </Link>
-            <Link
-              to="/resume"
-              className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
-            >
-              View Resume
-            </Link>
-            <Link
-              to="/contact"
-              className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
-            >
-              Contact Me
-            </Link>
+              Email
+            </a>
+            <External href="https://www.linkedin.com/in/alexander-chilupe-64a89313b/">
+              LinkedIn
+            </External>
+            <External href="https://github.com/TheChilupe">GitHub</External>
+            <External href={resumeUrl}>View Resume</External>
           </div>
         </section>
       </main>
     </div>
+  );
+}
+
+function External({
+  href,
+  primary = false,
+  className = "",
+  children,
+}: {
+  href: string;
+  primary?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={`inline-flex rounded-md px-4 py-2 text-sm font-semibold ${primary ? "bg-primary text-primary-foreground hover:opacity-90" : "border border-border hover:bg-secondary"} ${className}`}
+    >
+      {children}
+    </a>
   );
 }
