@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { EvidenceGallery } from "@/components/skills/evidence-gallery";
 import cloudBg from "@/assets/main-cloud-bg.jpg";
 
 type Capability = {
@@ -529,6 +530,9 @@ function SkillsPage() {
             })}
           </nav>
         </section>
+
+        <EvidenceGallery />
+
         <div className="mt-16 space-y-14 sm:mt-20 sm:space-y-20">
           {sections.map((s) => (
             <CapabilitySection key={s.id} section={s} />
@@ -568,3 +572,4 @@ function SkillsPage() {
     </div>
   );
 }
+

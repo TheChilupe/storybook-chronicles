@@ -1,3 +1,5 @@
+import websiteV2RoadmapMarkdown from "./website-v2-roadmap.md?raw";
+import artDepartmentMarkdown from "./art-department.md?raw";
 export type EvidenceArtifact = {
   id: string;
   title: string;
@@ -8,6 +10,8 @@ export type EvidenceArtifact = {
   source: string;
   document?: string;
   documentLabel?: string;
+  markdown?: string;
+  special?: "professional-delivery" | "creative-motion" | "qa-review";
 };
 
 export const skillsEvidence: EvidenceArtifact[] = [
@@ -84,6 +88,7 @@ export const skillsEvidence: EvidenceArtifact[] = [
     preview:
       "/portfolio/skills/notion/website-v2-roadmap-preview.png",
     source: "Notion",
+    markdown: websiteV2RoadmapMarkdown,
   },
   {
     id: "art-department",
@@ -101,6 +106,7 @@ export const skillsEvidence: EvidenceArtifact[] = [
     preview:
       "/portfolio/skills/notion/art-department-preview.png",
     source: "Notion",
+    markdown: artDepartmentMarkdown,
   },
   {
     id: "production-qa-review",
@@ -118,6 +124,7 @@ export const skillsEvidence: EvidenceArtifact[] = [
     preview:
       "/portfolio/skills/qa/production-qa-review.png",
     source: "Notion",
+    special: "qa-review",
   },
   {
     id: "source-migration-retrospective",
@@ -136,4 +143,40 @@ export const skillsEvidence: EvidenceArtifact[] = [
       "/portfolio/skills/qa/source-migration-retrospective.png",
     source: "ClickUp",
   },
-];
+  {
+    id: "enterprise-cloud-migration",
+    title: "Enterprise Cloud Migration Delivery Lifecycle",
+    category: "Professional Project Management",
+    summary:
+      "A sanitized reconstruction of a completed enterprise implementation lifecycle covering discovery, requirements, technical execution, testing, training, go-live, and post-launch support.",
+    skills: [
+      "Project management",
+      "Technical delivery",
+      "Risk management",
+      "Stakeholder coordination",
+      "Go-live readiness",
+    ],
+    preview: "",
+    source: "Professional Experience",
+    special: "professional-delivery",
+  },  {
+    id: "visual-development-motion",
+    title: "Visual Development & Motion Studies",
+    category: "AI Creative Direction & Production",
+    summary:
+      "A visual-development study showing character iteration, AI-assisted concept exploration, refinement, and early animation experiments across original Storybook Chronicles characters.",
+    skills: [
+      "Creative direction",
+      "Visual development",
+      "AI-assisted production",
+      "Iteration",
+      "Motion prototyping",
+    ],
+    preview: "/portfolio/skills/creative/blue-face-refined.png",
+    source: "Storybook Chronicles",
+    special: "creative-motion",
+  },];
+
+
+
+
