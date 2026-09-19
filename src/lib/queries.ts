@@ -8,6 +8,11 @@ const must = <T>(d: T | null, e: any): T => {
   return d as T;
 };
 
+export type StoryExperienceStatus =
+  | "available"
+  | "locked"
+  | "coming-soon";
+
 export type PublicStory = {
   id: string;
   slug: string;
@@ -17,6 +22,7 @@ export type PublicStory = {
   summary_md: string | null;
   cover_image_url: string | null;
   canon_status: string;
+  experience_status: StoryExperienceStatus;
   summary_spoiler_md?: string | null;
 };
 
